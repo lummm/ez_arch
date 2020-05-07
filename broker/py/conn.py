@@ -48,4 +48,9 @@ def connect(app: App)-> App:
         ENV.WORKER_PIPE_HOST, ENV.WORKER_PIPE_PORT,
         "worker dealer"
     )
-    return app
+    return app._replace(
+        broker_dealer = broker_dealer,
+        broker_sub = broker_sub,
+        in_router = in_router,
+        worker_dealer = worker_dealer,
+    )

@@ -1,0 +1,35 @@
+* INPUT FLAT
+[
+  RETURN_ADDR,
+  b"",
+  MSG_TYPE,                       - \x01 = WORKER, \x02 = CLIENT
+  ...REST
+]
+
+** WORKER
+*** LEVEL 1
+[
+  TYPE,                           - \x01 - HEARTBEAT, \x02 - REPLY
+  ..REST
+]
+*** LEVEL 2
+HEARTBEAT
+[
+  (EMPTY)
+]
+
+REPLY
+[
+RESPONSE_BODY                     - should be fine to send right to client
+]
+
+** CLIENT
+*** LEVEL 1
+[
+  SERVICE_NAME,                   - bytes
+  BODY
+]
+
+* B_STATE FLAT
+[
+]
