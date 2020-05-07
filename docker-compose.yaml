@@ -1,0 +1,27 @@
+version: "3.4"
+services:
+
+  in_pipe:
+    build: ./pipes
+    network_mode: "host"
+    restart: "unless-stopped"
+    environment:
+      - PORT_A=${IN_PIPE_PORT_A}
+      - PORT_B=${IN_PIPE_PORT_B}
+
+  worker_pipe:
+    build: ./pipes
+    network_mode: "host"
+    restart: "unless-stopped"
+    environment:
+      - PORT_A=${WORKER_PIPE_PORT_A}
+      - PORT_B=${WORKER_PIPE_PORT_B}
+
+  broker_pipe:
+    build: ./pipes
+    network_mode: "host"
+    restart: "unless-stopped"
+    environment:
+      - PORT_A=${BROKER_PIPE_PORT_A}
+      - PORT_B=${BROKER_PIPE_PORT_B}
+      - BROADCAST_PORT=${BROKER_BROADCAST_PORT}
