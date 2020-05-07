@@ -1,5 +1,7 @@
 #!/bin/sh
 
+export LOG_LEVEL="DEBUG"
+
 export IN_PIPE_HOST="127.0.0.1"
 export IN_PIPE_PORT_A="9000"
 export IN_PIPE_PORT_B="9001"
@@ -12,5 +14,3 @@ export BROKER_PIPE_HOST="127.0.0.1"
 export BROKER_PIPE_PORT_A="9004"
 export BROKER_PIPE_PORT_B="9005"
 export BROKER_BROADCAST_PORT="9006"
-
-export INPUT_PORT="${IN_PIPE_PORT_A}"

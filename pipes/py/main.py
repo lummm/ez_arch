@@ -21,17 +21,16 @@ def setup_logging()-> None:
 def loop_body(app: App)-> None:
     items = app.poller.poll(app.poll_interval_ms)
     for socket, _event in items:
-        logging.info("items: %s", items)
         if socket == app.dealer:
             frames = app.dealer.recv_multipart()
-            logging.info("dealer got %s", frames)
+            logging.debug("upstream frames: %s", frames)
             app.router.send_multipart(frames)
         if socket == app.router:
             frames = app.router.recv_multipart()
-            logging.info("router got %s", frames)
-            app.dealer.send_multipart(frames)
+            logging.debug("downstream frames: %s", frames)
+            app.dealer.send_multipart(frames[1:])
             if app.pub:
-                app.pub.send_multipart(frames)
+                app.pub.send_multipart(frames[1:])
     return
 
 
