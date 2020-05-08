@@ -9,6 +9,7 @@ from app import Frames
 import client_msg
 import conn
 from env import ENV
+import protoc
 import worker_msg
 
 
@@ -38,9 +39,9 @@ def handle_input_frames(
     assert b"" == frames[1]
     msg_type = frames[2]
     body = frames[3:]
-    if msg_type == b"\x01":
+    if msg_type == protoc.WORKER:
         app = worker_msg.handle(app, body)
-    elif msg_type == b'\x02':
+    elif msg_type == protoc.CLIENT:
         app = client_msg.handle(app, body)
     else:
         logging.error("unknown msg type: %s", msg_type)
