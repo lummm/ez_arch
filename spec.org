@@ -15,7 +15,7 @@
 *** LEVEL 2
 HEARTBEAT
 [
-  (EMPTY)
+  SERVICE_NAME                    - bytes
 ]
 
 REPLY

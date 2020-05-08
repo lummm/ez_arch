@@ -38,3 +38,10 @@ services:
       - LOG_LEVEL
       - WORKER_PIPE_HOST
       - WORKER_PIPE_PORT=${WORKER_PIPE_PORT_A}
+
+  test_worker:
+    build: ./test_worker
+    network_mode: "host"
+    restart: "unless-stopped"
+    environment:
+      - LOG_LEVEL
