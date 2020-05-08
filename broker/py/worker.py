@@ -30,6 +30,17 @@ def process_heartbeat(
     return app
 
 
+def process_reply(
+        app: App,
+        worker_addr: bytes,
+        frames: Frames          # LEVEL 2 WORKER REPLY
+)-> App:
+    response = frames
+    logging.info("GOT WORKER REPLY %s", response)
+    app.in_router.send_multipart(response)
+    return app
+
+
 def handle(
         app: App,
         worker_addr: bytes,
@@ -39,6 +50,9 @@ def handle(
     body = frames[1:]
     if msg_type == protoc.HEARTBEAT:
         return process_heartbeat(app, worker_addr, body)
+    if msg_type == protoc.REPLY:
+        return process_reply(app, worker_addr, body)
+    logging.error("unknown worker msg type: %s", msg_type)
     return app
 
 

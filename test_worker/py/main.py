@@ -24,7 +24,6 @@ def loop_body(app: App)-> App:
     for socket, _event in items:
         frames = socket.recv_multipart()
         logging.debug("recvd frames: %s", frames)
-        # while work is being done, we no longer heartbeat
     return app
 
 

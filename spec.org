@@ -32,7 +32,7 @@ RESPONSE_BODY                     - should be fine to send right to client
 
 * B_STATE FLAT
 [
-  MSG_TYPE,                        - \x01 - HEARTBEAT, \x02 WORKER_ENGAGED
+  MSG_TYPE,                        - \x01 - HEARTBEAT, \x02 WORKER_ENGAGED, \x02 WORKER_UNENGAGED
   ...REST
 ]
 ** LEVEL 1
@@ -43,6 +43,11 @@ HEARTBEAT
 ]
 
 WORKER_ENGAGED
+[
+  WORKER_ADDR
+]
+
+WORKER_UNENGAGED
 [
   WORKER_ADDR
 ]
