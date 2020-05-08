@@ -3,3 +3,5 @@ CLIENT = b"\x02"
 
 HEARTBEAT = b"\x01"
 REPLY = b"\x02"
+
+WORKER_ENGAGED = b"\x02"

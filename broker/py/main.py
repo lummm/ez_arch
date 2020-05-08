@@ -28,8 +28,8 @@ def handle_broker_broadcast(
         app: App,
         frames: Frames          # B_STATE FLAT
 )-> App:
-    logging.info("broker broadcast: %s", frames)
-    return app
+    logging.debug("broadcast frames: %s", frames)
+    return state.handle(app, frames)
 
 
 def handle_input_frames(
