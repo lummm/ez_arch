@@ -20,11 +20,11 @@ def handle(
     if not avail_workers:
         logging.error("no available workers for %s", service_name)
         return app
-    selected = None
+    selected: bytes
     min_task_count = None
     for w in avail_workers:
         task_count = app.worker_tasks.get(w, 0)
-        if selected is None:
+        if min_task_count is None:
             selected = w
             min_task_count = task_count
         if task_count < min_task_count:
