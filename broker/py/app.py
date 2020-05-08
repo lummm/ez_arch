@@ -20,4 +20,4 @@ class App(NamedTuple):
     poller: zmq.Poller = zmq.Poller()
     service_addrs: Dict[bytes, Set[bytes]] = {} # service_id -> avail worker addrs
     worker_dealer: zmq.Socket = None
-    worker_expiry: Dict[bytes, int] = {} # worker_addr -> expiry ts
+    worker_expiry: Dict[bytes, float] = {} # worker_addr -> expiry ts

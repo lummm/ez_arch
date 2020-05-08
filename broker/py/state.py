@@ -24,6 +24,8 @@ def handle_heartbeat(
 )-> App:
     service_name = frames[0]
     worker_addr = frames[1]
+    logging.debug("heartbeat service %s at %s",
+                  service_name, worker_addr)
     if not service_name in app.service_addrs:
         app.service_addrs[service_name] = set()
     app.service_addrs[service_name].add(worker_addr)

@@ -43,7 +43,6 @@ def remove_worker(
 
 
 def purge_dead_workers(app: App)-> App:
-    logging.debug("checking for dead workers")
     now = time.time()
     items = list(app.worker_expiry.items())
     for w, expiry_ts in items:

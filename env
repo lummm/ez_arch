@@ -1,6 +1,6 @@
 #!/bin/sh
 
-export LOG_LEVEL="DEBUG"
+export LOG_LEVEL="INFO"
 
 export IN_PIPE_HOST="127.0.0.1"
 export IN_PIPE_PORT_A="9000"
