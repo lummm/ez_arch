@@ -1,4 +1,5 @@
 import logging
+import time
 
 from app import App
 from app import Frames
@@ -23,6 +24,10 @@ def handle_heartbeat(
 )-> App:
     service_name = frames[0]
     worker_addr = frames[1]
+    if not service_name in app.service_addrs:
+        app.service_addrs[service_name] = set()
+    app.service_addrs[service_name].add(worker_addr)
+    app.worker_expiry[worker_addr] = time.time() + ENV.WORKER_LIFETIME_S
     return app
 
 

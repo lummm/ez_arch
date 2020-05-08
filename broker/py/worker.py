@@ -36,7 +36,7 @@ def remove_worker(
         worker_addr: bytes
 )-> App:
     logging.debug("removing worker at addr: %s", worker_addr)
-    app.worker_expiry.pop(worker_addr)
+    app.worker_expiry.pop(worker_addr, None)
     for service_name in app.service_addrs:
         app.service_addrs[service_name].remove(worker_addr)
     return app
@@ -45,7 +45,8 @@ def remove_worker(
 def purge_dead_workers(app: App)-> App:
     logging.debug("checking for dead workers")
     now = time.time()
-    for w, expiry_ts in app.worker_expiry.items():
-        if expiry_ts < now == 0:
+    items = list(app.worker_expiry.items())
+    for w, expiry_ts in items:
+        if expiry_ts < now:
             app = remove_worker(app, w)
     return app

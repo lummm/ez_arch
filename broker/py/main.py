@@ -50,7 +50,7 @@ def handle_input_frames(
 
 
 def loop_body(app: App)-> App:
-    items = app.poller.poll(app.poll_interval_ms)
+    items = app.poller.poll(ENV.POLL_INTERVAL_MS)
     for socket, _event in items:
         frames = socket.recv_multipart()
         logging.debug("got frames: %s", frames)

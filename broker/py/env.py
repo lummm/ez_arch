@@ -4,6 +4,7 @@ from typing import NamedTuple
 
 DEFAULT_POLL_INTERVAL_MS = 3000
 DEFAULT_WORKER_LIVENESS = 3
+DEFAULT_WORKER_LIFETIME_S = (DEFAULT_WORKER_LIVENESS * DEFAULT_POLL_INTERVAL_MS) / 1000.0
 
 
 class _ENV(NamedTuple):
@@ -16,6 +17,9 @@ class _ENV(NamedTuple):
     POLL_INTERVAL_MS: int = int(os.environ.get(
         "POLL_INTERVAL_MS", DEFAULT_POLL_INTERVAL_MS
     ))
+    WORKER_LIFETIME_S: int = int(
+        os.environ.get("WORKER_LIFETIME_S", DEFAULT_WORKER_LIFETIME_S)
+    )
     WORKER_LIVENESS: int = int(os.environ.get(
         "WORKER_LIVENESS", DEFAULT_WORKER_LIVENESS
     ))
