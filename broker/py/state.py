@@ -18,6 +18,16 @@ def broadcast_heartbeat(
     return app
 
 
+def broadcast_worker_engaged(
+        app: App,
+        worker_addr: bytes
+)-> App:
+    app.broker_dealer.send_multipart(
+        [protoc.WORKER_ENGAGED, worker_addr]
+    )
+    return app
+
+
 def handle_heartbeat(
         app: App,
         frames: Frames          # B_STATE LEVEL 1 HEARTBEAT
@@ -33,6 +43,18 @@ def handle_heartbeat(
     return app
 
 
+def handle_worker_engaged(
+        app: App,
+        frames: Frames
+)-> App:
+    worker_addr = frames[0]
+    if not worker_addr in app.worker_tasks:
+        app.worker_tasks[worker_addr] = 0
+    app.worker_tasks[worker_addr] += 1
+    logging.debug("worker engaged: %s", worker_addr)
+    return app
+
+
 def handle(
         app: App,
         frames: Frames          # B_STATE FLAT
@@ -42,7 +64,6 @@ def handle(
     if msg_type == protoc.HEARTBEAT:
         return handle_heartbeat(app, rest)
     if msg_type == protoc.WORKER_ENGAGED:
-        logging.info("worker engaged...")
-        return app
+        return handle_worker_engaged(app, rest)
     logging.error("no such broker state message type: %s", msg_type)
     return app

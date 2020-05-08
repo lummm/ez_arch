@@ -8,6 +8,17 @@ import state
 import protoc
 
 
+def send_to_worker(
+        app: App,
+        worker_addr: bytes,
+        frames: Frames
+)-> App:
+    app.worker_dealer.send_multipart(
+        [b"", worker_addr] + frames
+    )
+    return app
+
+
 def process_heartbeat(
         app: App,
         worker_addr: bytes,
@@ -37,6 +48,7 @@ def remove_worker(
 )-> App:
     logging.debug("removing worker at addr: %s", worker_addr)
     app.worker_expiry.pop(worker_addr, None)
+    app.worker_tasks.pop(worker_addr, None)
     for service_name in app.service_addrs:
         app.service_addrs[service_name].remove(worker_addr)
     return app
