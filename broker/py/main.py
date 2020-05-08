@@ -10,7 +10,8 @@ import client_msg
 import conn
 from env import ENV
 import protoc
-import worker_msg
+import state
+import worker
 
 
 def setup_logging()-> None:
@@ -40,7 +41,7 @@ def handle_input_frames(
     msg_type = frames[2]
     body = frames[3:]
     if msg_type == protoc.WORKER:
-        app = worker_msg.handle(app, body)
+        app = worker.handle(app, return_addr, body)
     elif msg_type == protoc.CLIENT:
         app = client_msg.handle(app, body)
     else:
@@ -57,6 +58,7 @@ def loop_body(app: App)-> App:
             app = handle_input_frames(app, frames)
         if socket == app.broker_sub:
             app = handle_broker_broadcast(app, frames)
+    app = worker.purge_dead_workers(app)
     return app
 
 

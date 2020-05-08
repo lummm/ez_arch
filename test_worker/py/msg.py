@@ -4,22 +4,23 @@ import zmq
 
 from app import App
 from app import Frames
+import protoc
 
 
 def send(
         app: App,
         frames: Frames
 )-> None:
-    frames = [b"", b"\x01"] + frames # INPUT FLAT
+    frames = [b"", protoc.WORKER] + frames # INPUT FLAT
     app.dealer.send_multipart(frames)
     return
 
 
 def send_heartbeat(app: App)-> None:
     frames = [
-        b"\x01",          # WORKER LEVEL 1
-        app.service_name  # LEVEL 2 HEARTBEAT
-    ] 
+        protoc.HEARTBEAT,       # WORKER LEVEL 1
+        app.service_name        # LEVEL 2 HEARTBEAT
+    ]
     return send(app, frames)
 
 

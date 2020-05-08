@@ -3,6 +3,7 @@ from typing import NamedTuple
 
 
 DEFAULT_POLL_INTERVAL_MS = 3000
+DEFAULT_WORKER_LIVENESS = 3
 
 
 class _ENV(NamedTuple):
@@ -14,6 +15,9 @@ class _ENV(NamedTuple):
     LOG_LEVEL: str = os.environ.get("LOG_LEVEL", "INFO")
     POLL_INTERVAL_MS: int = int(os.environ.get(
         "POLL_INTERVAL_MS", DEFAULT_POLL_INTERVAL_MS
+    ))
+    WORKER_LIVENESS: int = int(os.environ.get(
+        "WORKER_LIVENESS", DEFAULT_WORKER_LIVENESS
     ))
     WORKER_PIPE_HOST: str = os.environ["WORKER_PIPE_HOST"]
     WORKER_PIPE_PORT: int = int(os.environ["WORKER_PIPE_PORT"])

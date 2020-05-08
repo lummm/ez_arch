@@ -7,22 +7,24 @@ services:
     network_mode: "host"
     restart: "unless-stopped"
     environment:
-      - PORT_A=${IN_PIPE_PORT_A}
-      - PORT_B=${IN_PIPE_PORT_B}
+      - LOG_LEVEL
+      - IN_PORT=${IN_PIPE_PORT_A}
+      - DEALER_PORT=${IN_PIPE_PORT_B}
   worker_pipe:
     build: ./pipes
     network_mode: "host"
     restart: "unless-stopped"
     environment:
-      - PORT_A=${WORKER_PIPE_PORT_A}
-      - PORT_B=${WORKER_PIPE_PORT_B}
+      - LOG_LEVEL
+      - IN_PORT=${WORKER_PIPE_PORT_A}
+      - DEALER_PORT=${WORKER_PIPE_PORT_B}
   broker_pipe:
     build: ./pipes
     network_mode: "host"
     restart: "unless-stopped"
     environment:
-      - PORT_A=${BROKER_PIPE_PORT_A}
-      - PORT_B=${BROKER_PIPE_PORT_B}
+      - LOG_LEVEL
+      - IN_PORT=${BROKER_PIPE_PORT_A}
       - BROADCAST_PORT=${BROKER_BROADCAST_PORT}
 
   broker:
@@ -32,7 +34,7 @@ services:
     environment:
       - BROKER_BROADCAST_PORT
       - BROKER_PIPE_HOST
-      - BROKER_PIPE_IN_PORT=${BROKER_PIPE_PORT_B}
+      - BROKER_PIPE_IN_PORT=${BROKER_PIPE_PORT_A}
       - IN_PIPE_HOST
       - IN_PIPE_PORT=${IN_PIPE_PORT_B}
       - LOG_LEVEL

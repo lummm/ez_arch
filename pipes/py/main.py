@@ -28,7 +28,8 @@ def loop_body(app: App)-> None:
         if socket == app.router:
             frames = app.router.recv_multipart()
             logging.debug("downstream frames: %s", frames)
-            app.dealer.send_multipart(frames[1:])
+            if app.dealer:
+                app.dealer.send_multipart(frames[1:])
             if app.pub:
                 app.pub.send_multipart(frames[1:])
     return
@@ -48,17 +49,16 @@ def connect(
     router = app.c.socket(zmq.ROUTER)
     app.poller.register(dealer, zmq.POLLIN)
     app.poller.register(router, zmq.POLLIN)
-    def bind(s: zmq.Socket, port: int, name: str)-> None:
+    def bind(s: zmq.Socket, port: int, name: str)-> zmq.Socket:
+        if port == -1:
+            return None
         con_s = "tcp://*:{}".format(port)
         s.bind(con_s)
         logging.info("%s bound to %s", name, con_s)
-        return
-    if ENV.BROADCAST_PORT != -1:
-        bind(pub, ENV.BROADCAST_PORT, "pub")
-    else:
-        pub = None
-    bind(dealer, ENV.PORT_B, "dealer")
-    bind(router, ENV.PORT_A, "router")
+        return s
+    pub = bind(pub, ENV.BROADCAST_PORT, "pub")
+    dealer = bind(dealer, ENV.DEALER_PORT, "dealer")
+    bind(router, ENV.IN_PORT, "router")
     return app._replace(
         dealer = dealer,
         pub = pub,
