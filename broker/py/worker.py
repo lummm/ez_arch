@@ -15,9 +15,7 @@ def send_to_worker(
         return_addr: bytes,
         req_body: Frames
 )-> App:
-    logging.info("req body: %s", req_body)
     frames = [b"", worker_addr, b"", router_addr, return_addr, b""] + req_body
-    logging.info("sending down frames: %s", frames)
     app.worker_dealer.send_multipart(frames)
     return app
 
@@ -39,8 +37,9 @@ def process_reply(
         frames: Frames          # LEVEL 2 WORKER REPLY
 )-> App:
     response = frames
-    logging.info("GOT WORKER REPLY %s", response)
+    logging.debug("worker reply %s", response)
     app.in_router.send_multipart(response)
+    state.broadcast_worker_unengaged(app, worker_addr)
     return app
 
 

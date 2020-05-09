@@ -27,6 +27,14 @@ def setup_logging()-> None:
     return
 
 
+def mock_handler(
+        app: App,
+        req_body: Frames
+)-> Frames:
+    time.sleep(2)
+    return [b"ECHO"] + req_body
+
+
 def loop_body(app: App)-> App:
     items = app.poller.poll(app.poll_interval_ms)
     for socket, _event in items:
@@ -40,11 +48,7 @@ def loop_body(app: App)-> App:
         client_return_addr = frames[5:7]
         assert b"" == frames[7]
         req_body = frames[8:]
-        # broker_addr = frames[0]
-        # return_addr = frames[1]
-        # assert b"" == frames[2]
-        # req_body = frames[3:]
-        reply = [b"ECHO"] + req_body
+        reply = mock_handler(app, req_body)
         msg.send_response(app, client_return_addr, reply)
     return app
 
