@@ -81,8 +81,9 @@ def handle(
         app: App,
         frames: Frames          # B_STATE FLAT
 )-> App:
-    msg_type = frames[0]
-    rest = frames[1:]
+    return_addr = frames[0]
+    msg_type = frames[1]
+    rest = frames[2:]
     if msg_type == protoc.HEARTBEAT:
         return handle_heartbeat(app, rest)
     if msg_type == protoc.WORKER_ENGAGED:

@@ -16,6 +16,15 @@ def send(
     return
 
 
+def send_response(
+        app: App,
+        dest: Frames,
+        reply: Frames
+)-> None:
+    frames = [protoc.REPLY] + dest + [b""] + reply
+    return send(app, frames)
+
+
 def send_heartbeat(app: App)-> None:
     frames = [
         protoc.HEARTBEAT,       # WORKER LEVEL 1
@@ -26,8 +35,9 @@ def send_heartbeat(app: App)-> None:
 
 def connect(app: App)-> App:
     router = app.c.socket(zmq.ROUTER)
-    router.connect(app.in_con_s)
-    logging.info("router connected to %s", app.in_con_s)
+    if app.in_con_s:
+        router.connect(app.in_con_s)
+        logging.info("router connected to %s", app.in_con_s)
     dealer = app.c.socket(zmq.DEALER)
     dealer.connect(app.out_con_s)
     logging.info("dealer connected to %s", app.out_con_s)

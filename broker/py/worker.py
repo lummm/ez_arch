@@ -11,11 +11,14 @@ import protoc
 def send_to_worker(
         app: App,
         worker_addr: bytes,
-        frames: Frames
+        router_addr: bytes,
+        return_addr: bytes,
+        req_body: Frames
 )-> App:
-    app.worker_dealer.send_multipart(
-        [b"", worker_addr] + frames
-    )
+    logging.info("req body: %s", req_body)
+    frames = [b"", worker_addr, b"", router_addr, return_addr, b""] + req_body
+    logging.info("sending down frames: %s", frames)
+    app.worker_dealer.send_multipart(frames)
     return app
 
 

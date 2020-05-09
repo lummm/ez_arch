@@ -47,3 +47,5 @@ services:
     restart: "unless-stopped"
     environment:
       - LOG_LEVEL
+      - IN_PORT=${WORKER_PIPE_PORT_B}
+      - RES_PORT=${IN_PIPE_PORT_A}

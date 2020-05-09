@@ -36,14 +36,15 @@ def handle_input_frames(
         app: App,
         frames: Frames          # INPUT FLAT
 )-> App:
-    return_addr = frames[0]
-    assert b"" == frames[1]
-    msg_type = frames[2]
-    body = frames[3:]
+    router_addr = frames[0]
+    return_addr = frames[1]
+    assert b"" == frames[2]
+    msg_type = frames[3]
+    body = frames[4:]
     if msg_type == protoc.WORKER:
         app = worker.handle(app, return_addr, body)
     elif msg_type == protoc.CLIENT:
-        app = client_msg.handle(app, body)
+        app = client_msg.handle(app, router_addr, return_addr, body)
     else:
         logging.error("unknown msg type: %s", msg_type)
     return app

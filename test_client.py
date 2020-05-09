@@ -19,6 +19,8 @@ def request(
     req.send_multipart(
         [b"\x02", service] + body
     )
+    res = req.recv_multipart()
+    print(res)
     return
 
 

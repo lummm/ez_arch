@@ -8,6 +8,8 @@ import worker
 
 def handle(
         app: App,
+        router_addr: bytes,
+        return_addr: bytes,
         frames: Frames          # CLIENT LEVEL 1
 )-> App:
     service_name = frames[0]
@@ -32,6 +34,12 @@ def handle(
             min_task_count = task_count
     logging.debug("sending work to %s for service %s.  %s Tasks pending",
                   selected, service_name, min_task_count)
-    app = worker.send_to_worker(app, selected, body)
+    app = worker.send_to_worker(
+        app,
+        selected,
+        router_addr,
+        return_addr,
+        body
+    )
     state.broadcast_worker_engaged(app, selected)
     return app

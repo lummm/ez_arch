@@ -29,9 +29,9 @@ def loop_body(app: App)-> None:
             frames = app.router.recv_multipart()
             logging.debug("downstream frames: %s", frames)
             if app.dealer:
-                app.dealer.send_multipart(frames[1:])
+                app.dealer.send_multipart(frames)
             if app.pub:
-                app.pub.send_multipart(frames[1:])
+                app.pub.send_multipart(frames)
     return
 
 
