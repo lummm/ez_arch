@@ -23,11 +23,9 @@ def loop_body(app: App)-> None:
     for socket, _event in items:
         if socket == app.dealer:
             frames = app.dealer.recv_multipart()
-            logging.debug("upstream frames: %s", frames)
             app.router.send_multipart(frames)
         if socket == app.router:
             frames = app.router.recv_multipart()
-            logging.debug("downstream frames: %s", frames)
             if app.dealer:
                 app.dealer.send_multipart(frames)
             if app.pub:

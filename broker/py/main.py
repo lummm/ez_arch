@@ -28,7 +28,6 @@ def handle_broker_broadcast(
         app: App,
         frames: Frames          # B_STATE FLAT
 )-> App:
-    logging.debug("broadcast frames: %s", frames)
     return state.handle(app, frames)
 
 
@@ -55,7 +54,6 @@ def loop_body(app: App)-> App:
     # should really check state changes first
     for socket, _event in items:
         frames = socket.recv_multipart()
-        logging.debug("got frames: %s", frames)
         if socket == app.in_router:
             app = handle_input_frames(app, frames)
         if socket == app.broker_sub:

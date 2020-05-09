@@ -26,7 +26,6 @@ def process_heartbeat(
         frames: Frames          # LEVEL 2 WORKER HEARTBEAT
 )-> App:
     service_name = frames[0]
-    logging.debug("heartbeat for service: %s", service_name)
     state.broadcast_heartbeat(app, worker_addr, service_name)
     return app
 
@@ -37,7 +36,6 @@ def process_reply(
         frames: Frames          # LEVEL 2 WORKER REPLY
 )-> App:
     response = frames
-    logging.debug("worker reply %s", response)
     app.in_router.send_multipart(response)
     state.broadcast_worker_unengaged(app, worker_addr)
     return app
