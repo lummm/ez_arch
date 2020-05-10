@@ -12,8 +12,7 @@ import msg
 
 
 class _ENV(NamedTuple):
-    IN_PORT: int = int(os.environ["IN_PORT"])
-    RES_PORT: int = int(os.environ["RES_PORT"])
+    PORT: int = int(os.environ["PORT"])
 ENV = _ENV()
 
 
@@ -53,23 +52,14 @@ def loop_body(app: App)-> App:
     return app
 
 
-def run_work_loop()-> None:
-    app = App(
-        in_con_s = "tcp://127.0.0.1:{}".format(ENV.IN_PORT),
-        out_con_s = "tcp://127.0.0.1:{}".format(ENV.RES_PORT),
-        service_name = b"TEST_SERVICE",
-    )
+def run_work_loop(app: App)-> None:
     app = msg.connect(app)
     while True:
         app = loop_body(app)
     return
 
 
-def run_hb_loop()-> None:
-    app = App(
-        out_con_s = "tcp://127.0.0.1:{}".format(ENV.RES_PORT),
-        service_name = b"TEST_SERVICE",
-    )
+def run_hb_loop(app: App)-> None:
     app = msg.connect(app)
     while True:
         msg.send_heartbeat(app)
@@ -79,9 +69,13 @@ def run_hb_loop()-> None:
 
 def main():
     setup_logging()
-    t = Thread(target = run_hb_loop, args = ())
+    app = App(
+        con_s = "tcp://127.0.0.1:{}".format(ENV.PORT),
+        service_name = b"TEST_SERVICE",
+    )
+    t = Thread(target = run_hb_loop, args = (app,))
     t.start()
-    run_work_loop()
+    run_work_loop(app)
     return
 
 

@@ -58,6 +58,8 @@ def loop_body(app: App)-> App:
             app = handle_input_frames(app, frames)
         if socket == app.broker_sub:
             app = handle_broker_broadcast(app, frames)
+        if socket == app.worker_router:
+            logging.info("task on worker router")
     app = worker.purge_dead_workers(app)
     return app
 

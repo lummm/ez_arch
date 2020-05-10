@@ -39,7 +39,7 @@ services:
       - IN_PIPE_PORT=${IN_PIPE_PORT_B}
       - LOG_LEVEL
       - WORKER_PIPE_HOST
-      - WORKER_PIPE_PORT=${WORKER_PIPE_PORT_A}
+      - WORKER_PIPE_PORT=${WORKER_PIPE_PORT_B}
 
   test_worker:
     build: ./test_worker
@@ -47,5 +47,4 @@ services:
     restart: "unless-stopped"
     environment:
       - LOG_LEVEL
-      - IN_PORT=${WORKER_PIPE_PORT_B}
-      - RES_PORT=${IN_PIPE_PORT_A}
+      - PORT=${WORKER_PIPE_PORT_A}

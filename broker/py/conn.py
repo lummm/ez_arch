@@ -23,10 +23,11 @@ def connect(app: App)-> App:
     broker_sub = app.c.socket(zmq.SUB)
     broker_sub.setsockopt(zmq.SUBSCRIBE, b"")
     in_router = app.c.socket(zmq.ROUTER)
-    worker_dealer = app.c.socket(zmq.DEALER)
+    worker_router = app.c.socket(zmq.ROUTER)
     # poll
     app.poller.register(broker_sub, zmq.POLLIN)
     app.poller.register(in_router, zmq.POLLIN)
+    app.poller.register(worker_router, zmq.POLLIN)
     # connect
     _connect_socket(
         broker_dealer,
@@ -44,13 +45,13 @@ def connect(app: App)-> App:
         "router input"
     )
     _connect_socket(
-        worker_dealer,
+        worker_router,
         ENV.WORKER_PIPE_HOST, ENV.WORKER_PIPE_PORT,
-        "worker dealer"
+        "worker router"
     )
     return app._replace(
         broker_dealer = broker_dealer,
         broker_sub = broker_sub,
         in_router = in_router,
-        worker_dealer = worker_dealer,
+        worker_router = worker_router,
     )

@@ -34,15 +34,10 @@ def send_heartbeat(app: App)-> None:
 
 
 def connect(app: App)-> App:
-    router = app.c.socket(zmq.ROUTER)
-    if app.in_con_s:
-        router.connect(app.in_con_s)
-        logging.info("router connected to %s", app.in_con_s)
     dealer = app.c.socket(zmq.DEALER)
-    dealer.connect(app.out_con_s)
-    logging.info("dealer connected to %s", app.out_con_s)
-    app.poller.register(router, zmq.POLLIN)
+    dealer.connect(app.con_s)
+    logging.info("dealer connected to %s", app.con_s)
+    app.poller.register(dealer, zmq.POLLIN)
     return app._replace(
         dealer = dealer,
-        router = router,
     )

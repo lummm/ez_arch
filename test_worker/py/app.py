@@ -15,9 +15,9 @@ class App(NamedTuple):
     c: zmq.Context = zmq.Context()
     dealer: zmq.Socket = None
     hb_interval_s: float = DEFAULT_HEARTBEAT_S
-    in_con_s: str = ""
-    out_con_s: str = ""
+    con_s: str = ""
+    # out_con_s: str = ""
     poller: zmq.Poller = zmq.Poller()
     poll_interval_ms: int = DEFAULT_POLL_INTERVAL_MS
-    router: zmq.Socket = None
+    # router: zmq.Socket = None
     service_name: bytes = b""

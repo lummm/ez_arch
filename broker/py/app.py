@@ -19,6 +19,6 @@ class App(NamedTuple):
     in_router: zmq.Socket = None
     poller: zmq.Poller = zmq.Poller()
     service_addrs: Dict[bytes, Set[bytes]] = {} # service_id -> avail worker addrs
-    worker_dealer: zmq.Socket = None
+    worker_router: zmq.Socket = None
     worker_tasks: Dict[bytes, int] = {}        # worker_addr -> # tasks assigned
     worker_expiry: Dict[bytes, float] = {} # worker_addr -> expiry ts

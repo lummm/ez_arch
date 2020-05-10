@@ -16,7 +16,7 @@ def send_to_worker(
         req_body: Frames
 )-> App:
     frames = [b"", worker_addr, b"", router_addr, return_addr, b""] + req_body
-    app.worker_dealer.send_multipart(frames)
+    app.worker_router.send_multipart(frames)
     return app
 
 
@@ -51,6 +51,7 @@ def handle(
     if msg_type == protoc.HEARTBEAT:
         return process_heartbeat(app, worker_addr, body)
     if msg_type == protoc.REPLY:
+        logging.info("reply from worker addr: %s", worker_addr)
         return process_reply(app, worker_addr, body)
     logging.error("unknown worker msg type: %s", msg_type)
     return app
