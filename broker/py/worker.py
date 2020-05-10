@@ -11,11 +11,10 @@ import protoc
 def send_to_worker(
         app: App,
         worker_addr: bytes,
-        router_addr: bytes,
         return_addr: bytes,
         req_body: Frames
 )-> App:
-    frames = [b"", worker_addr, b"", router_addr, return_addr, b""] + req_body
+    frames = [app.worker_pipe_addr, worker_addr, b"", return_addr, b""] + req_body
     app.worker_router.send_multipart(frames)
     return app
 
@@ -36,7 +35,7 @@ def process_reply(
         frames: Frames          # LEVEL 2 WORKER REPLY
 )-> App:
     response = frames
-    app.in_router.send_multipart(response)
+    app.in_router.send_multipart([app.in_pipe_addr] + response)
     state.broadcast_worker_unengaged(app, worker_addr)
     return app
 

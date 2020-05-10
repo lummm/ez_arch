@@ -31,21 +31,52 @@ def handle_broker_broadcast(
     return state.handle(app, frames)
 
 
-def handle_input_frames(
+# def handle_input_frames(
+#         app: App,
+#         frames: Frames          # INPUT FLAT
+# )-> App:
+#     in_pipe_addr = frames[0]
+#     return_addr = frames[1]
+#     assert b"" == frames[2]
+#     msg_type = frames[3]
+#     body = frames[4:]
+#     app = app._replace(in_pipe_addr = in_pipe_addr)
+#     if msg_type == protoc.WORKER:
+#         app = worker.handle(app, return_addr, body)
+#     elif msg_type == protoc.CLIENT:
+#         app = client_msg.handle(app, return_addr, body)
+#     else:
+#         logging.error("unknown msg type: %s", msg_type)
+#     return app
+
+
+def handle_req_frames(
         app: App,
         frames: Frames          # INPUT FLAT
 )-> App:
-    router_addr = frames[0]
+    in_pipe_addr = frames[0]
     return_addr = frames[1]
     assert b"" == frames[2]
     msg_type = frames[3]
+    assert msg_type == protoc.CLIENT
     body = frames[4:]
-    if msg_type == protoc.WORKER:
-        app = worker.handle(app, return_addr, body)
-    elif msg_type == protoc.CLIENT:
-        app = client_msg.handle(app, router_addr, return_addr, body)
-    else:
-        logging.error("unknown msg type: %s", msg_type)
+    app = app._replace(in_pipe_addr = in_pipe_addr)
+    app = client_msg.handle(app, return_addr, body)
+    return app
+
+
+def handle_worker_frames(
+        app: App,
+        frames: Frames          # INPUT FLAT
+)-> App:
+    worker_pipe_addr = frames[0]
+    return_addr = frames[1]
+    assert b"" == frames[2]
+    msg_type = frames[3]
+    assert msg_type == protoc.WORKER
+    body = frames[4:]
+    app = app._replace(worker_pipe_addr = worker_pipe_addr)
+    app = worker.handle(app, return_addr, body)
     return app
 
 
@@ -55,11 +86,11 @@ def loop_body(app: App)-> App:
     for socket, _event in items:
         frames = socket.recv_multipart()
         if socket == app.in_router:
-            app = handle_input_frames(app, frames)
+            app = handle_req_frames(app, frames)
         if socket == app.broker_sub:
             app = handle_broker_broadcast(app, frames)
         if socket == app.worker_router:
-            logging.info("task on worker router")
+            app = handle_worker_frames(app, frames)
     app = worker.purge_dead_workers(app)
     return app
 
