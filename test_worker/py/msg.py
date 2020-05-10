@@ -18,10 +18,10 @@ def send(
 
 def send_response(
         app: App,
-        dest: Frames,
+        dest: bytes,
         reply: Frames
 )-> None:
-    frames = [protoc.REPLY] + dest + [b""] + reply
+    frames = [protoc.REPLY, dest, b""] + reply
     return send(app, frames)
 
 

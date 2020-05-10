@@ -14,7 +14,7 @@ def send_to_worker(
         return_addr: bytes,
         req_body: Frames
 )-> App:
-    frames = [app.worker_pipe_addr, worker_addr, b"", return_addr, b""] + req_body
+    frames = [app.worker_pipe_addr, worker_addr, b"", return_addr] + req_body
     app.worker_router.send_multipart(frames)
     return app
 

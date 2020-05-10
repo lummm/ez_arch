@@ -48,7 +48,6 @@ def handle_heartbeat(
         app.service_addrs[service_name] = set()
     app.service_addrs[service_name].add(worker_addr)
     app.worker_expiry[worker_addr] = time.time() + ENV.WORKER_LIFETIME_S
-    logging.debug("workers: %s", app.service_addrs)
     return app
 
 

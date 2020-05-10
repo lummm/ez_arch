@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
+import atexit
 import logging
 from threading import Thread
 import time
 from typing import NamedTuple
 import os
+import sys
 
 from app import App
 from app import Frames
@@ -39,14 +41,9 @@ def loop_body(app: App)-> App:
     for socket, _event in items:
         frames = socket.recv_multipart()
         logging.info("recvd frames: %s", frames)
-        pipe_addr = frames[0]
-        router_addr = frames[1]
-        assert b"" == frames[2]
-        my_addr = frames[3]
-        assert b"" == frames[4]
-        client_return_addr = frames[5:7]
-        assert b"" == frames[7]
-        req_body = frames[8:]
+        assert b"" == frames[0]
+        client_return_addr = frames[1]
+        req_body = frames[2:]
         reply = mock_handler(app, req_body)
         msg.send_response(app, client_return_addr, reply)
     return app
@@ -75,7 +72,11 @@ def main():
     )
     t = Thread(target = run_hb_loop, args = (app,))
     t.start()
-    run_work_loop(app)
+    try:
+        run_work_loop(app)
+    except Exception as e:
+        logging.exception("worker died: %s", e)
+        os._exit(1)
     return
 
 
