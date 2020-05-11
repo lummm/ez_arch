@@ -6,12 +6,7 @@ import os
 from typing import NamedTuple
 
 import ez_arch_worker.api as ez_worker
-
-# from app import App
-# from app import Frames
-# import msg
-
-Frames = ez_worker.Frames
+from ez_arch_worker.api import Frames
 
 
 class _ENV(NamedTuple):
@@ -43,33 +38,13 @@ async def mock_handler(
     return (new_state, res)
 
 
-# async def loop_body(app: App)-> App:
-#     msg.send_heartbeat(app)
-#     items = await app.poller.poll(app.poll_interval_ms)
-#     for socket, _event in items:
-#         frames = await socket.recv_multipart()
-#         logging.info("recvd frames: %s", frames)
-#         assert b"" == frames[0]
-#         client_return_addr = frames[1]
-#         req_body = frames[2:]
-#         reply = await mock_handler(app, req_body)
-#         msg.send_response(app, client_return_addr, reply)
-#     return app
-
-
-# async def run_loop(app: App)-> None:
-#     app = await msg.connect(app)
-#     while True:
-#         app = await loop_body(app)
-#     return
-
 async def run_loop():
     await ez_worker.run_worker(
         service_name = b"TEST_SERVICE",
         handler = mock_handler,
         initial_state = State(),
         listen_host = "localhost",
-        listen_port = ENV.PORT,
+        port = ENV.PORT,
     )
 
 
