@@ -33,7 +33,7 @@ def send_heartbeat(app: App)-> None:
     return send(app, frames)
 
 
-def connect(app: App)-> App:
+async def connect(app: App)-> App:
     dealer = app.c.socket(zmq.DEALER)
     dealer.connect(app.con_s)
     logging.info("dealer connected to %s", app.con_s)

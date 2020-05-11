@@ -31,25 +31,6 @@ def handle_broker_broadcast(
     return state.handle(app, frames)
 
 
-# def handle_input_frames(
-#         app: App,
-#         frames: Frames          # INPUT FLAT
-# )-> App:
-#     in_pipe_addr = frames[0]
-#     return_addr = frames[1]
-#     assert b"" == frames[2]
-#     msg_type = frames[3]
-#     body = frames[4:]
-#     app = app._replace(in_pipe_addr = in_pipe_addr)
-#     if msg_type == protoc.WORKER:
-#         app = worker.handle(app, return_addr, body)
-#     elif msg_type == protoc.CLIENT:
-#         app = client_msg.handle(app, return_addr, body)
-#     else:
-#         logging.error("unknown msg type: %s", msg_type)
-#     return app
-
-
 def handle_req_frames(
         app: App,
         frames: Frames          # INPUT FLAT
@@ -82,15 +63,15 @@ def handle_worker_frames(
 
 def loop_body(app: App)-> App:
     items = app.poller.poll(ENV.POLL_INTERVAL_MS)
-    # should really check state changes first
-    for socket, _event in items:
-        frames = socket.recv_multipart()
-        if socket == app.in_router:
-            app = handle_req_frames(app, frames)
-        if socket == app.broker_sub:
-            app = handle_broker_broadcast(app, frames)
-        if socket == app.worker_router:
-            app = handle_worker_frames(app, frames)
+    items_dict = dict(items)
+    def work_on_socket(app, socket, handler):
+        if socket in items_dict:
+            frames = socket.recv_multipart()
+            app = handler(app, frames)
+        return app
+    app = work_on_socket(app, app.broker_sub, handle_broker_broadcast)
+    app = work_on_socket(app, app.worker_router, handle_worker_frames)
+    app = work_on_socket(app, app.in_router, handle_req_frames)
     app = worker.purge_dead_workers(app)
     return app
 

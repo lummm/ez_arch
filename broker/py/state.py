@@ -46,7 +46,9 @@ def handle_heartbeat(
     worker_addr = frames[1]
     if not service_name in app.service_addrs:
         app.service_addrs[service_name] = set()
-    app.service_addrs[service_name].add(worker_addr)
+    if not worker_addr in app.service_addrs[service_name]:
+        logging.info("service %s has new worker %s", service_name, worker_addr)
+        app.service_addrs[service_name].add(worker_addr)
     app.worker_expiry[worker_addr] = time.time() + ENV.WORKER_LIFETIME_S
     return app
 
@@ -59,7 +61,8 @@ def handle_worker_engaged(
     if not worker_addr in app.worker_tasks:
         app.worker_tasks[worker_addr] = 0
     app.worker_tasks[worker_addr] += 1
-    logging.debug("worker engaged: %s", worker_addr)
+    logging.debug("Worker engaged: %s.  Tasks: %s",
+                  worker_addr, app.worker_tasks[worker_addr])
     return app
 
 
@@ -71,7 +74,8 @@ def handle_worker_unengaged(
     if not worker_addr in app.worker_tasks:
         app.worker_tasks[worker_addr] = 1
     app.worker_tasks[worker_addr] -= 1
-    logging.debug("worker unengaged: %s", worker_addr)
+    logging.debug("Worker unengaged: %s.  Tasks: %s",
+                  worker_addr, app.worker_tasks[worker_addr])
     return app
 
 

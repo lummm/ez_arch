@@ -13,7 +13,6 @@ def handle(
 )-> App:
     service_name = frames[0]
     body = frames[1:]
-    # consult service lookup table for the address to deal this to
     if not service_name in app.service_addrs:
         logging.error("no available workers for %s", service_name)
         return app
@@ -31,7 +30,7 @@ def handle(
         if task_count < min_task_count:
             selected = w
             min_task_count = task_count
-    logging.debug("sending work to %s for service %s.  %s Tasks pending",
+    logging.info("sending work to %s for service %s.  %s Tasks pending",
                   selected, service_name, min_task_count)
     app = worker.send_to_worker(app, selected, return_addr, body)
     state.broadcast_worker_engaged(app, selected)

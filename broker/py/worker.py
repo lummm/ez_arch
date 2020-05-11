@@ -50,7 +50,7 @@ def handle(
     if msg_type == protoc.HEARTBEAT:
         return process_heartbeat(app, worker_addr, body)
     if msg_type == protoc.REPLY:
-        logging.info("reply from worker addr: %s", worker_addr)
+        logging.debug("reply from worker addr: %s", worker_addr)
         return process_reply(app, worker_addr, body)
     logging.error("unknown worker msg type: %s", msg_type)
     return app
@@ -60,7 +60,7 @@ def remove_worker(
         app: App,
         worker_addr: bytes
 )-> App:
-    logging.debug("removing worker at addr: %s", worker_addr)
+    logging.info("removing worker at addr: %s", worker_addr)
     app.worker_expiry.pop(worker_addr, None)
     app.worker_tasks.pop(worker_addr, None)
     for service_name in app.service_addrs:
