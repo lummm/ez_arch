@@ -40,20 +40,6 @@ def process_reply(
     return app
 
 
-def handle(
-        app: App,
-        worker_addr: bytes,
-        frames: Frames          # LEVEL 1 WORKER
-)-> App:
-    msg_type = frames[0]
-    body = frames[1:]
-    if msg_type == protoc.HEARTBEAT:
-        return process_heartbeat(app, worker_addr, body)
-    if msg_type == protoc.REPLY:
-        logging.debug("reply from worker addr: %s", worker_addr)
-        return process_reply(app, worker_addr, body)
-    logging.error("unknown worker msg type: %s", msg_type)
-    return app
 
 
 def remove_worker(

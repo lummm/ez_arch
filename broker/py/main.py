@@ -6,11 +6,10 @@ import zmq
 
 from app import App
 from app import Frames
-import client_msg
+import handlers
 import conn
 from env import ENV
 import protoc
-import state
 import worker
 
 
@@ -26,14 +25,14 @@ def setup_logging()-> None:
 
 def handle_broker_broadcast(
         app: App,
-        frames: Frames          # B_STATE FLAT
+        frames: Frames          # B_STATE FLAT + ROUTING
 )-> App:
-    return state.handle(app, frames)
+    return handlers.state_msg_handle(app, frames)
 
 
 def handle_req_frames(
         app: App,
-        frames: Frames          # INPUT FLAT
+        frames: Frames          # INPUT FLAT + ROUTING
 )-> App:
     in_pipe_addr = frames[0]
     return_addr = frames[1]
@@ -42,13 +41,13 @@ def handle_req_frames(
     assert msg_type == protoc.CLIENT
     body = frames[4:]
     app = app._replace(in_pipe_addr = in_pipe_addr)
-    app = client_msg.handle(app, return_addr, body)
+    app = handlers.client_msg_handle(app, return_addr, body)
     return app
 
 
 def handle_worker_frames(
         app: App,
-        frames: Frames          # INPUT FLAT
+        frames: Frames          # INPUT FLAT + ROUTING
 )-> App:
     worker_pipe_addr = frames[0]
     return_addr = frames[1]
@@ -57,7 +56,7 @@ def handle_worker_frames(
     assert msg_type == protoc.WORKER
     body = frames[4:]
     app = app._replace(worker_pipe_addr = worker_pipe_addr)
-    app = worker.handle(app, return_addr, body)
+    app = handlers.worker_msg_handle(app, return_addr, body)
     return app
 
 

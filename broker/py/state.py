@@ -77,20 +77,3 @@ def handle_worker_unengaged(
     logging.debug("Worker unengaged: %s.  Tasks: %s",
                   worker_addr, app.worker_tasks[worker_addr])
     return app
-
-
-def handle(
-        app: App,
-        frames: Frames          # B_STATE FLAT
-)-> App:
-    return_addr = frames[0]
-    msg_type = frames[1]
-    rest = frames[2:]
-    if msg_type == protoc.HEARTBEAT:
-        return handle_heartbeat(app, rest)
-    if msg_type == protoc.WORKER_ENGAGED:
-        return handle_worker_engaged(app, rest)
-    if msg_type == protoc.WORKER_UNENGAGED:
-        return handle_worker_unengaged(app, rest)
-    logging.error("no such broker state message type: %s", msg_type)
-    return app
