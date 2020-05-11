@@ -1,0 +1,21 @@
+#!/bin/bash
+
+DATE_TAG=$(date -u +%Y-%m-%d-%H%M)
+GIT_TAG=$(git rev-parse --short --verify HEAD)
+TAG=${DATE_TAG}--${GIT_TAG}
+
+do_build() {
+    image_name="${1}"
+    build_dir="${2}"
+    full_image_name=tengelisconsulting/${image_name}:${TAG}
+    docker build -t ${full_image_name} ./${build_dir}
+    docker push ${full_image_name}
+    docker tag ${full_image_name} tengelisconsulting/${image_name}:latest
+    docker push tengelisconsulting/${image_name}:latest
+}
+
+do_build pipes_py pipes
+do_build broker_py broker
+
+# to make dockerhub happy
+docker build -t tengelisconsulting/arch:latest .

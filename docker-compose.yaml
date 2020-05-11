@@ -3,7 +3,7 @@ services:
 
   # pipes
   in_pipe:
-    build: ./pipes
+    image: tengelisconsulting/pipes_py
     network_mode: "host"
     restart: "unless-stopped"
     environment:
@@ -11,7 +11,7 @@ services:
       - IN_PORT=${IN_PIPE_PORT_A}
       - DEALER_PORT=${IN_PIPE_PORT_B}
   worker_pipe:
-    build: ./pipes
+    image: tengelisconsulting/pipes_py
     network_mode: "host"
     restart: "unless-stopped"
     environment:
@@ -19,7 +19,7 @@ services:
       - IN_PORT=${WORKER_PIPE_PORT_A}
       - DEALER_PORT=${WORKER_PIPE_PORT_B}
   broker_pipe:
-    build: ./pipes
+    image: tengelisconsulting/pipes_py
     network_mode: "host"
     restart: "unless-stopped"
     environment:
@@ -28,7 +28,7 @@ services:
       - BROADCAST_PORT=${BROKER_BROADCAST_PORT}
 
   broker:
-    build: ./broker
+    image: tengelisconsulting/broker_py
     network_mode: "host"
     restart: "unless-stopped"
     environment:
