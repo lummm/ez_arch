@@ -18,4 +18,4 @@ do_build pipes_py pipes
 do_build broker_py broker
 
 # to make dockerhub happy
-docker build -t tengelisconsulting/arch:latest .
+docker build -t tengelisconsulting/ez_arch:latest .
