@@ -50,7 +50,10 @@ def remove_worker(
     app.worker_expiry.pop(worker_addr, None)
     app.worker_tasks.pop(worker_addr, None)
     for service_name in app.service_addrs:
-        app.service_addrs[service_name].remove(worker_addr)
+        app.service_addrs[service_name] = set(filter(
+            lambda addr: addr != worker_addr,
+            app.service_addrs[service_name]
+        ))
     return app
 
 
