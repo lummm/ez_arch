@@ -1,19 +1,27 @@
 local zmq = require "lzmq"
-
-
-DEFAULT_TIMEOUT_MS = 3000
-DEFAULT_ATTEMPTS = 3
+local CLIENT = "\x02"
+local DEFAULT_TIMEOUT_MS = 3000
+local DEFAULT_ATTEMPTS = 3
 
 local function single_req(ctx, host, port, frames, timeout)
    if not timeout then
       timeout = DEFAULT_TIMEOUT_MS
    end
-   local client = ctx:socket{
+   local con_s = string.format("tcp://%s:%s", host, port)
+   log.info("connecting to %s", con_s)
+   local client, err = ctx:socket{
       zmq.REQ,
-      connect = string.format("tcp://%s:%s", host, port),
+      connect = con_s,
       rcvtimeo = timeout
    }
-   client:send_all(frames)
+   if err then
+      log.err("BAD %s", err)
+   end
+   local request = {CLIENT}
+   for _, v in pairs(frames) do
+      table.insert(request, v)
+   end
+   client:send_all(request)
    return client:recv_all()
 end
 
@@ -36,8 +44,11 @@ end
 local function new_requester(host, port)
    local ctx = zmq:context()
    local function _req(frames, conf)
+      if not conf then
+         conf = {}
+      end
       return full_request(
-         ctx, host, port, frames, arg.timeout, arg.attempts
+         ctx, host, port, frames, conf.timeout, conf.attempts
       )
    end
    return _req
