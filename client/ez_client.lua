@@ -24,7 +24,9 @@ local function single_req(ctx, host, port, frames, timeout)
       table.insert(request, v)
    end
    client:send_all(request)
-   return client:recv_all()
+   local res, err = client:recv_all()
+   client.close()
+   return res, err
 end
 
 local function full_request(ctx, host, port, frames, timeout, attempts)
