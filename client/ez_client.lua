@@ -16,6 +16,9 @@ local function single_req(ctx, host, port, frames, timeout)
       connect = con_s,
       rcvtimeo = timeout
    }
+   if err then
+      return nil, err
+   end
    local request = {CLIENT}
    for _, v in pairs(frames) do
       table.insert(request, v)
