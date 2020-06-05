@@ -1,8 +1,18 @@
 #!/bin/bash
 
-DATE_TAG=$(date -u +%Y-%m-%d-%H%M)
-GIT_TAG=$(git rev-parse --short --verify HEAD)
-TAG=${DATE_TAG}--${GIT_TAG}
+FILE=${BASH_SOURCE[0]:-${(%):-%x}}
+HOOK_DIR="$( cd "$( dirname "${FILE}" )" >/dev/null 2>&1 && pwd )"
+source ${HOOK_DIR}/hooks.env
+
+set -e
+if [[ "${IS_DOCKER_HUB}" == "1" ]]; then
+    docker_hub_build pipes_py pipes
+    docker_hub_build broker_py broker
+else
+    local_build pipes_py pipes
+    local_build broker_py broker
+fi
+
 
 do_build() {
     image_name="${1}"
