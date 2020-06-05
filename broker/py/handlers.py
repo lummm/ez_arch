@@ -11,10 +11,10 @@ def client_msg_handle(
         app: App,
         return_addr: bytes,
         frames: Frames          # CLIENT LEVEL 1
-)-> App:
+) -> App:
     service_name = frames[0]
     body = frames[1:]
-    if not service_name in app.service_addrs:
+    if service_name not in app.service_addrs:
         logging.error("no available workers for %s", service_name)
         return app
     avail_workers = app.service_addrs[service_name]
@@ -31,7 +31,7 @@ def client_msg_handle(
         if task_count < min_task_count:
             selected = w
             min_task_count = task_count
-    logging.info("sending work to %s for service %s.  %s Tasks pending",
+    logging.debug("sending work to %s for service %s.  %s Tasks pending",
                   selected, service_name, min_task_count)
     app = worker.send_to_worker(app, selected, return_addr, body)
     state.broadcast_worker_engaged(app, selected)
@@ -42,7 +42,7 @@ def worker_msg_handle(
         app: App,
         worker_addr: bytes,
         frames: Frames          # LEVEL 1 WORKER
-)-> App:
+) -> App:
     msg_type = frames[0]
     body = frames[1:]
     if msg_type == protoc.HEARTBEAT:
@@ -57,7 +57,7 @@ def worker_msg_handle(
 def state_msg_handle(
         app: App,
         frames: Frames          # B_STATE FLAT
-)-> App:
+) -> App:
     return_addr = frames[0]
     msg_type = frames[1]
     rest = frames[2:]
