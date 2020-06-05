@@ -25,7 +25,7 @@ local function single_req(ctx, host, port, frames, timeout)
    end
    client:send_all(request)
    local res, err = client:recv_all()
-   client.close()
+   client:close()
    return res, err
 end
 
