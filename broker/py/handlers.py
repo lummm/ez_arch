@@ -12,8 +12,9 @@ def client_msg_handle(
         return_addr: bytes,
         frames: Frames          # CLIENT LEVEL 1
 ) -> App:
-    service_name = frames[0]
-    body = frames[1:]
+    request_id = frames[0]
+    service_name = frames[1]
+    body = frames[2:]
     if service_name not in app.service_addrs:
         logging.error("no available workers for %s", service_name)
         return app
@@ -33,7 +34,7 @@ def client_msg_handle(
             min_task_count = task_count
     logging.debug("sending work to %s for service %s.  %s Tasks pending",
                   selected, service_name, min_task_count)
-    app = worker.send_to_worker(app, selected, return_addr, body)
+    app = worker.send_to_worker(app, selected, return_addr, request_id, body)
     state.broadcast_worker_engaged(app, selected)
     return app
 

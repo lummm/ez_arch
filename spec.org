@@ -26,6 +26,7 @@ RESPONSE_BODY                     - should be fine to send right to client
 ** CLIENT
 *** LEVEL 1
 [
+  REQUEST_ID,                     - bytes
   SERVICE_NAME,                   - bytes
   BODY
 ]

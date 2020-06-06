@@ -13,7 +13,7 @@ import protoc
 import worker
 
 
-def setup_logging()-> None:
+def setup_logging() -> None:
     logging.basicConfig(
         level=ENV.LOG_LEVEL,
         format=f"%(asctime)s.%(msecs)03d "
@@ -26,21 +26,21 @@ def setup_logging()-> None:
 def handle_broker_broadcast(
         app: App,
         frames: Frames          # B_STATE FLAT + ROUTING
-)-> App:
+) -> App:
     return handlers.state_msg_handle(app, frames)
 
 
 def handle_req_frames(
         app: App,
         frames: Frames          # INPUT FLAT + ROUTING
-)-> App:
+) -> App:
     in_pipe_addr = frames[0]
     return_addr = frames[1]
     assert b"" == frames[2]
     msg_type = frames[3]
     assert msg_type == protoc.CLIENT
     body = frames[4:]
-    app = app._replace(in_pipe_addr = in_pipe_addr)
+    app = app._replace(in_pipe_addr=in_pipe_addr)
     app = handlers.client_msg_handle(app, return_addr, body)
     return app
 
@@ -48,21 +48,22 @@ def handle_req_frames(
 def handle_worker_frames(
         app: App,
         frames: Frames          # INPUT FLAT + ROUTING
-)-> App:
+) -> App:
     worker_pipe_addr = frames[0]
     return_addr = frames[1]
     assert b"" == frames[2]
     msg_type = frames[3]
     assert msg_type == protoc.WORKER
     body = frames[4:]
-    app = app._replace(worker_pipe_addr = worker_pipe_addr)
+    app = app._replace(worker_pipe_addr=worker_pipe_addr)
     app = handlers.worker_msg_handle(app, return_addr, body)
     return app
 
 
-def loop_body(app: App)-> App:
+def loop_body(app: App) -> App:
     items = app.poller.poll(ENV.POLL_INTERVAL_MS)
     items_dict = dict(items)
+
     def work_on_socket(app, socket, handler):
         if socket in items_dict:
             frames = socket.recv_multipart()
@@ -75,7 +76,7 @@ def loop_body(app: App)-> App:
     return app
 
 
-def loop(app: App)-> None:
+def loop(app: App) -> None:
     while True:
         app = loop_body(app)
     return
