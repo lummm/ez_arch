@@ -27,6 +27,7 @@ def handle_broker_broadcast(
         app: App,
         frames: Frames          # B_STATE FLAT + ROUTING
 ) -> App:
+    logging.debug("broadcast frames %s", frames)
     return handlers.state_msg_handle(app, frames)
 
 
@@ -34,6 +35,7 @@ def handle_req_frames(
         app: App,
         frames: Frames          # INPUT FLAT + ROUTING
 ) -> App:
+    logging.debug("request frames %s", frames)
     in_pipe_addr = frames[0]
     return_addr = frames[1]
     assert b"" == frames[2]
@@ -49,6 +51,7 @@ def handle_worker_frames(
         app: App,
         frames: Frames          # INPUT FLAT + ROUTING
 ) -> App:
+    logging.debug("worker frames %s", frames)
     worker_pipe_addr = frames[0]
     return_addr = frames[1]
     assert b"" == frames[2]
