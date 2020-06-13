@@ -4,8 +4,8 @@ import logging
 
 import zmq
 
-from app import App
-from app import Frames
+import app
+from apptypes import Frames
 import handlers
 import conn
 from env import ENV
@@ -24,17 +24,16 @@ def setup_logging() -> None:
 
 
 def handle_broker_broadcast(
-        app: App,
         frames: Frames          # B_STATE FLAT + ROUTING
-) -> App:
+) -> None:
     logging.debug("broadcast frames %s", frames)
-    return handlers.state_msg_handle(app, frames)
+    handlers.state_msg_handle(frames)
+    return
 
 
 def handle_req_frames(
-        app: App,
         frames: Frames          # INPUT FLAT + ROUTING
-) -> App:
+) -> None:
     logging.debug("request frames %s", frames)
     in_pipe_addr = frames[0]
     return_addr = frames[1]
@@ -42,15 +41,14 @@ def handle_req_frames(
     msg_type = frames[3]
     assert msg_type == protoc.CLIENT
     body = frames[4:]
-    app = app._replace(in_pipe_addr=in_pipe_addr)
-    app = handlers.client_msg_handle(app, return_addr, body)
-    return app
+    app.update(in_pipe_addr=in_pipe_addr)
+    handlers.client_msg_handle(return_addr, body)
+    return
 
 
 def handle_worker_frames(
-        app: App,
         frames: Frames          # INPUT FLAT + ROUTING
-) -> App:
+) -> None:
     logging.debug("worker frames %s", frames)
     worker_pipe_addr = frames[0]
     return_addr = frames[1]
@@ -58,38 +56,32 @@ def handle_worker_frames(
     msg_type = frames[3]
     assert msg_type == protoc.WORKER
     body = frames[4:]
-    app = app._replace(worker_pipe_addr=worker_pipe_addr)
-    app = handlers.worker_msg_handle(app, return_addr, body)
-    return app
+    app.update(worker_pipe_addr=worker_pipe_addr)
+    handlers.worker_msg_handle(return_addr, body)
+    return
 
 
-def loop_body(app: App) -> App:
-    items = app.poller.poll(ENV.POLL_INTERVAL_MS)
+def loop_body() -> None:
+    items = app.state().poller.poll(ENV.POLL_INTERVAL_MS)
     items_dict = dict(items)
 
-    def work_on_socket(app, socket, handler):
+    def work_on_socket(socket, handler) -> None:
         if socket in items_dict:
             frames = socket.recv_multipart()
-            app = handler(app, frames)
-        return app
-    app = work_on_socket(app, app.broker_sub, handle_broker_broadcast)
-    app = work_on_socket(app, app.worker_router, handle_worker_frames)
-    app = work_on_socket(app, app.in_router, handle_req_frames)
-    app = worker.purge_dead_workers(app)
-    return app
-
-
-def loop(app: App) -> None:
-    while True:
-        app = loop_body(app)
+            handler(frames)
+        return
+    work_on_socket(app.state().broker_sub, handle_broker_broadcast)
+    work_on_socket(app.state().worker_router, handle_worker_frames)
+    work_on_socket(app.state().in_router, handle_req_frames)
+    worker.purge_dead_workers()
     return
 
 
 def main():
     setup_logging()
-    app = App()
-    app = conn.connect(app)
-    loop(app)
+    conn.connect()
+    while True:
+        loop_body()
     return
 
 

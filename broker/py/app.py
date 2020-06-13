@@ -1,18 +1,11 @@
 from typing import Dict
-from typing import List
 from typing import NamedTuple
 from typing import Set
-from typing import Tuple
 
 import zmq
 
-from env import ENV
 
-
-Frames = List[bytes]
-
-
-class App(NamedTuple):
+class State(NamedTuple):
     broker_dealer: zmq.Socket = None
     broker_sub: zmq.Socket = None
     c: zmq.Context = zmq.Context()
@@ -24,3 +17,23 @@ class App(NamedTuple):
     worker_router: zmq.Socket = None
     worker_tasks: Dict[bytes, int] = {}        # worker_addr -> # tasks assigned
     worker_expiry: Dict[bytes, float] = {} # worker_addr -> expiry ts
+
+
+_state = State()
+
+
+def state() -> State:
+    return _state
+
+
+def replace(new_state: State) -> None:
+    global _state
+    _state = new_state
+    return
+
+
+def update(**kwargs) -> None:
+    replace(
+        _state._replace(**kwargs)
+    )
+    return
