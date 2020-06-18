@@ -1,6 +1,6 @@
 # EZ ARCH
 'EZ Arch' is a framework to facilitate communication between a number of services.
-The design goals of the architecture are to keep services as simple as possible, to enable frequent requests across multiple services,
+The design goals of the architecture are to enable a large number of specialized services 
 and to enable straightforward horizontal scaling of each service.
 
 
