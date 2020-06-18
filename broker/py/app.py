@@ -1,8 +1,11 @@
+import asyncio
 from typing import Dict
 from typing import NamedTuple
 from typing import Set
 
 import zmq
+
+from apptypes import Frames
 
 
 class State(NamedTuple):
@@ -21,6 +24,8 @@ class State(NamedTuple):
 
 _state = State()
 
+work_qs: asyncio.Queue = asyncio.Queue()
+
 
 def state() -> State:
     return _state
@@ -36,4 +41,9 @@ def update(**kwargs) -> None:
     replace(
         _state._replace(**kwargs)
     )
+    return
+
+
+def q_work(frames: Frames) -> None:
+    work_qs.put_nowait(frames)
     return
