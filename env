@@ -1,15 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
-export LOG_LEVEL="INFO"
-
-export IN_PIPE_HOST="127.0.0.1"
-export IN_PIPE_PORT_A="9000"
-export IN_PIPE_PORT_B="9001"
-
-export WORKER_PIPE_HOST="127.0.0.1"
-export WORKER_PIPE_PORT_A="9004"
-export WORKER_PIPE_PORT_B="9005"
-
-export BROKER_PIPE_HOST="127.0.0.1"
-export BROKER_PIPE_PORT_A="9002"
-export BROKER_BROADCAST_PORT="9003"
+export WORKER_PORT="9004"
+export EZ_PORT="9000"

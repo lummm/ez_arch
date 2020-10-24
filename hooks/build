@@ -1,18 +1,3 @@
 #!/bin/bash
 
-FILE=${BASH_SOURCE[0]:-${(%):-%x}}
-HOOK_DIR="$( cd "$( dirname "${FILE}" )" >/dev/null 2>&1 && pwd )"
-source ${HOOK_DIR}/hooks.env
-
-set -e
-if [[ "${IS_DOCKER_HUB}" == "1" ]]; then
-    docker_hub_build pipes_py pipes
-    docker_hub_build broker_py broker
-else
-    local_build pipes_py pipes
-    local_build broker_py broker
-fi
-
-
-# to make dockerhub happy
-docker build -t tengelisconsulting/ez_arch:latest .
+docker build -t tengelisconsulting/ez .

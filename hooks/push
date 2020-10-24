@@ -1,9 +1,0 @@
-#!/bin/bash
-
-FILE=${BASH_SOURCE[0]:-${(%):-%x}}
-HOOK_DIR="$( cd "$( dirname "${FILE}" )" >/dev/null 2>&1 && pwd )"
-source ${HOOK_DIR}/hooks.env
-
-set -e
-docker_hub_push pipes_py
-docker_hub_push broker_py

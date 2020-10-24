@@ -1,0 +1,51 @@
+Basics:
+You'll need a ZeroMQ ROUTER at 'IN_PORT', and a ROUTER at 'WORKER_PORT'
+
+
+EZ endpoints should be Erlang server ps endpoints.
+This could be a dedicated Erlang genServer.
+
+Then, a request made over ZMQ can just be deserialized into an Erlang request,
+which is then sent to the genServer ps above.
+This genServer ps might make zeroMQ reqs of course.
+
+
+
+I want a process to live for the lifetime of the request.
+That way the request data lives and dies with this process.
+
+
+Worker contract is defined thusly:
+ - Send heartbeats every 2 seconds (worker liveliness)
+ - Respond to requests
+
+
+Backpressure is handled at the broker level.
+'WORKER_JOB_MAX' is the max number of jobs allowed to be given
+ to any given worker.
+If this number of jobs are allocated to all workers for a given service,
+any requests on top of it wait for 3 seconds, and if the situation remains
+the same, the request fails.
+This is to prevent an infinite loop of requests getting arbitrarily deep.
+
+
+[[file:lib/ez/ez_req.ex::Ez.WorkerListen.send_to_worker(addr, req_id, return_addr, body)][ez_req--after-send]]
+There is the option of keeping the requesting process alive, as so:
+        # to keep the PID out of the messages,
+        # you can store a (addr + req_id) => PID mapping somewhere,
+        # and then look up the PID when the message comes back
+
+        # we will hang out in a receive block here until we get the
+        # response back, and then send_multipart the response where
+        # it belongs.
+        # Set a timeout, and respond that we timed out if so.
+
+The benefit this gives us is that we can manage the lifetime of the request
+from within the framework itself, in case we needed information related to
+congestion, etc.
+That said, a client request already specifies a timeout,
+after which it gives up regardless.  I think this is sufficient at this time.
+
+
+Incorporate an ack from workers.
+Then you don't need to think about retries.
