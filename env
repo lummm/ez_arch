@@ -1,4 +1,5 @@
 #!/bin/bash
 
-export WORKER_PORT="9004"
-export EZ_PORT="9000"
+# required
+export WORKER_PORT="9004"       # port at which workers heartbeat / receive requests / send replies
+export EZ_PORT="9000"           # port at which ZMQ requests are made

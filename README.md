@@ -11,6 +11,7 @@ This repo provides the 'plumbing' of the framework, and a broker for requests.
 
 The python worker API lives here: [ez_arch_worker](https://github.com/tengelisconsulting/ez_arch_worker).
 I'll include other language clients if I need one, but you can write your own fairly easily.
+See [worker protocol](https://github.com/tengelisconsulting/ez_arch/blob/master/worker_protocol.md)
 
 
 ## Details
