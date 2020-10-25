@@ -87,12 +87,12 @@ defmodule Ez.Workers do
     {:noreply, state}
   end
   def handle_cast({:delete, addresses}, state) do
-    Logger.info(
-      "deleting workers - [#{Enum.join(addresses, "\n")}]")
+    Enum.each(addresses,
+      &(Logger.info("deleting worker - #{Kernel.inspect(&1)}")))
     # I'd like it if I could look up the service name for an address
     to_delete = MapSet.new(addresses)
     jobs = Map.drop(state.jobs, addresses)
-    services = state.jobs
+    services = state.services
     |> Enum.map(fn {sname, workers} ->
       {sname, MapSet.difference(workers, to_delete)}
     end)

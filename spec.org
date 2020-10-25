@@ -1,0 +1,40 @@
+Here, 'FLAT' means the message as it is received by the broker.
+It corresponds to called LEVEL 0.
+'INPUT FLAT' is a message received on the broker's ROUTER socket, and
+'B_STATE FLAT' is a message received on the broker's SUB socket.
+
+What is referred to as '...REST' in level N are the frames referred to in level (N + 1).
+
+
+* INPUT FLAT
+[
+  RETURN_ADDR,
+  b"",
+  MSG_TYPE,                       - \x01 = WORKER, \x02 = CLIENT
+  ...REST
+]
+
+** WORKER
+*** LEVEL 1
+[
+  TYPE,                           - \x01 - HEARTBEAT, \x02 - REPLY, \x03 - ACK
+  ..REST
+]
+*** LEVEL 2
+HEARTBEAT
+[
+  SERVICE_NAME                    - bytes
+]
+
+REPLY
+[
+RESPONSE_BODY                     - should be fine to send right to client
+]
+
+** CLIENT
+*** LEVEL 1
+[
+  REQUEST_ID,                     - bytes
+  SERVICE_NAME,                   - bytes
+  BODY
+]
