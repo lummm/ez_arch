@@ -10,9 +10,8 @@ defmodule Ez.WorkerListen do
     GenServer.cast(__MODULE__, {:worker_msg, msg})
   end
 
-  def send_to_worker(addr, req_id, return_addr, body) do
-    GenServer.cast(__MODULE__,
-      {:send, addr, req_id, return_addr, body})
+  def send_to_worker(addr, req_id, body) do
+    GenServer.cast(__MODULE__, {:send, addr, req_id, body})
   end
 
   # Server callbacks
@@ -33,9 +32,8 @@ defmodule Ez.WorkerListen do
     Ez.Workers.worker_msg(msg)
     {:noreply, state}
   end
-  def handle_cast({:send, addr, req_id, return_addr, body}, state) do
-    :chumak.send_multipart(state.router,
-      [addr, "", return_addr, req_id] ++ body)
+  def handle_cast({:send, addr, req_id, body}, state) do
+    :chumak.send_multipart(state.router, [addr, "", req_id] ++ body)
     {:noreply, state}
   end
 

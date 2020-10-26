@@ -4,31 +4,30 @@ defmodule Ez.Request do
   """
   require Logger
 
-  def req(from, req_id, return_addr, sname, body) do
+  def req(from, req_id, sname, body) do
     spawn(fn ->
-      res = do_request(req_id, return_addr, sname, body,
-      Ez.Env.min_req_timeout())
+      res = do_request(req_id, sname, body, Ez.Env.min_req_timeout())
       send(from, {:res, res})
     end)
   end
 
-  def ack(req_id) do
+  def ack(req_id, addr) do
     case Ez.ReqRegistry.get(req_id) do
-      %{pid: pid} -> send(pid, :ack)
+      %{pid: pid} -> send(pid, {:ack, addr})
       _ -> Logger.error("Failed to process ack for req id #{req_id}")
     end
   end
 
-  def response_received(req_id, client_addr, reply_frames) do
+  def response_received(req_id, reply_frames) do
     case Ez.ReqRegistry.get(req_id) do
       %{pid: pid} ->
-        send(pid, {:response, client_addr, reply_frames})
+        send(pid, {:response, reply_frames})
       _ -> Logger.error("Failed to find process response for req id #{req_id}")
     end
   end
 
   defp do_request(
-    req_id, return_addr, sname, body,
+    req_id, sname, body,
     retry_timeout
   ) do
     Ez.ReqRegistry.put(req_id, self())
@@ -37,8 +36,7 @@ defmodule Ez.Request do
       Logger.warn("no such service #{sname}")
       if retry_timeout && (retry_timeout < Ez.Env.max_req_timeout()) do
         Process.sleep(retry_timeout)
-        do_request(req_id, return_addr, sname, body,
-          retry_timeout * 2)
+        do_request(req_id, sname, body, retry_timeout * 2)
       else
         Ez.ReqRegistry.clear(self())
         ["ERR", "\"no such service\""]
@@ -48,21 +46,19 @@ defmodule Ez.Request do
       if Ez.Env.backpressure_threshold() < jobs do
         Process.sleep(jobs * Ez.Env.backpressure_ratio())
       end
-      Ez.WorkerListen.send_to_worker(
-        addr, req_id, return_addr, body)
+      Ez.WorkerListen.send_to_worker(addr, req_id, body)
       receive do
-        :ack ->
-          Ez.Workers.worker_engaged(addr)
+        {:ack, worker_addr} ->
+          Ez.Workers.worker_engaged(worker_addr)
           receive do
-            {:response, _client_addr, reply_frames} ->
+            {:response, reply_frames} ->
               reply_frames
           end
       after
         retry_timeout ->
           Logger.info("req timeout for #{sname}")
           if retry_timeout < Ez.Env.max_req_timeout() do
-            do_request(req_id, return_addr, sname, body,
-              retry_timeout * 2)
+            do_request(req_id, sname, body, retry_timeout * 2)
           else
             Ez.ReqRegistry.clear(self())
             ["ERR", "\"timeout\""]

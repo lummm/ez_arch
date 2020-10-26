@@ -55,12 +55,12 @@ defmodule Ez.Workers do
     state = case msg do
               [addr, "", @worker, @heartbeat, sname] ->
                 handle_heartbeat(addr, sname, state)
-              [addr, "", @worker, @reply, client_addr, "", req_id | body] ->
+              [addr, "", @worker, @reply, req_id | body] ->
                 worker_unengaged(addr)
-                Ez.Request.response_received(req_id, client_addr, body)
+                Ez.Request.response_received(req_id, body)
                 state
-              [_addr, "", @worker, @ack, req_id] ->
-                Ez.Request.ack(req_id)
+              [addr, "", @worker, @ack, req_id] ->
+                Ez.Request.ack(req_id, addr)
                 state
               _ ->
                 Logger.warn("didn't recognize #{Kernel.inspect(msg)}")

@@ -63,7 +63,7 @@ defmodule Ez.ZmqInterface do
   end
 
   defp do_request(req_id, return_addr, service_name, rest) do
-    Ez.Request.req(self(), req_id, return_addr, service_name, rest)
+    Ez.Request.req(self(), req_id, service_name, rest)
     receive do
       {:res, response} -> reply(return_addr, req_id, response)
       # timeout...
