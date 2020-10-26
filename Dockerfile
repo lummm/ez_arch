@@ -7,7 +7,7 @@ RUN apk add --update \
         && mix local.rebar --force
 
 WORKDIR /app
-COPY ./config ./config
+# COPY ./config ./config
 COPY ./mix.exs ./mix.exs
 COPY ./mix.lock ./mix.lock
 RUN mix deps.get
