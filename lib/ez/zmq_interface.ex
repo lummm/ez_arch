@@ -45,7 +45,7 @@ defmodule Ez.ZmqInterface do
   def handle_cast({:zmq_req, msg}, state) do
     case msg do
       [return_addr, "", @client, req_id, service_name | rest] ->
-        Ez.EzReq.req(req_id, return_addr, service_name, rest)
+        Ez.Request.req(req_id, return_addr, service_name, rest)
         {:noreply, state}
       _ ->
         Logger.warn("bad zmq req #{Kernel.inspect(msg)}")

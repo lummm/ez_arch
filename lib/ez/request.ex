@@ -1,4 +1,4 @@
-defmodule Ez.EzReq do
+defmodule Ez.Request do
   @moduledoc """
   Interface into the EZ framework
   """
@@ -40,7 +40,7 @@ defmodule Ez.EzReq do
           retry_timeout * 2)
       else
         Ez.Requests.clear(self())
-        Ez.ZmqReq.reply(return_addr, req_id,
+        Ez.ZmqInterface.reply(return_addr, req_id,
           ["ERR", "\"no such service\""])
       end
     else
@@ -55,7 +55,7 @@ defmodule Ez.EzReq do
           Ez.Workers.worker_engaged(addr)
           receive do
             {:response, client_addr, reply_frames} ->
-              Ez.ZmqReq.reply(client_addr, req_id, reply_frames)
+              Ez.ZmqInterface.reply(client_addr, req_id, reply_frames)
           end
       after
         retry_timeout ->
@@ -65,7 +65,7 @@ defmodule Ez.EzReq do
               retry_timeout * 2)
           else
             Ez.Requests.clear(self())
-            Ez.ZmqReq.reply(return_addr, req_id,
+            Ez.ZmqInterface.reply(return_addr, req_id,
               ["ERR", "\"timeout\""])
           end
       end
