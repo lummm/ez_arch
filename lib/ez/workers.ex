@@ -14,6 +14,7 @@ defmodule Ez.Workers do
   @worker <<1>>
   @heartbeat <<1>>
   @reply <<2>>
+  @ack <<3>>
 
   # Client API
   def start_link do
@@ -64,6 +65,8 @@ defmodule Ez.Workers do
                 handle_heartbeat(state, addr, sname)
               [addr, "", @worker, @reply | rest] ->
                 handle_reply(state, addr, rest)
+              [addr, "", @worker, @ack, req_id] ->
+                handle_ack(state, addr, req_id)
               _ ->
                 Logger.warn("didn't recognize #{Kernel.inspect(msg)}")
                 state
@@ -134,6 +137,19 @@ defmodule Ez.Workers do
     handle_common(state, addr)
   end
 
+  defp handle_ack(state, addr, req_id) do
+    spawn(fn ->
+      Logger.info("handling ack for #{req_id}...")
+      pid = Ez.Requests.get_pid_for_req(req_id)
+      if pid do
+        send(pid, :ack)
+      else
+        Logger.error("no process found for req id #{req_id}")
+      end
+    end)
+    handle_common(state, addr)
+  end
+
   defp handle_common(state, addr) do
     state
     |> put_in([:timeouts, addr],
@@ -164,8 +180,17 @@ defmodule Ez.Workers do
       if Ez.Env.backpressure_threshold() < jobs do
         Process.sleep(jobs * Ez.Env.backpressure_ratio())
       end
-      worker_engaged(addr)
-      Ez.WorkerListen.send_to_worker(addr, req_id, return_addr, body)
+      Ez.Requests.match_pid_req(self(), req_id)
+      Ez.WorkerListen.send_to_worker(
+        addr, req_id, return_addr, body)
+      receive do
+        :ack ->
+          Logger.info("acked!")
+          :ok
+        # check for timeout, this means nothing picked
+        # it up in time, so we retry
+      end
+
     end
   end
 

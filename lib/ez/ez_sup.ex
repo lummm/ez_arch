@@ -10,7 +10,7 @@ defmodule Ez.Supervisor do
     children = [
       worker(Ez.Env, []),
       worker(Ez.Registry, []),
-      # worker(Ez.EzReq, []),
+      worker(Ez.Requests, []),
       supervisor(Ez.WorkerListenSup, []),
       worker(Ez.Workers, []),
       supervisor(Ez.ZmqReqSup, []),
