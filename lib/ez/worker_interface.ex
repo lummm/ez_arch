@@ -1,4 +1,4 @@
-defmodule Ez.WorkerListen do
+defmodule Ez.WorkerInterface do
   use GenServer
 
   # Client API

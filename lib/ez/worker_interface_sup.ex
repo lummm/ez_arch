@@ -1,4 +1,4 @@
-defmodule Ez.WorkerListenSup do
+defmodule Ez.WorkerInterfaceSup do
   use Supervisor
 
   def start_link do
@@ -7,7 +7,7 @@ defmodule Ez.WorkerListenSup do
 
   def init(:ok) do
     children = [
-      worker(Ez.WorkerListen, []),
+      worker(Ez.WorkerInterface, []),
     ]
     Supervisor.init(children, strategy: :one_for_one)
   end

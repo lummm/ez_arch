@@ -46,7 +46,7 @@ defmodule Ez.Request do
       if Ez.Env.backpressure_threshold() < jobs do
         Process.sleep(jobs * Ez.Env.backpressure_ratio())
       end
-      Ez.WorkerListen.send_to_worker(addr, req_id, body)
+      Ez.WorkerInterface.send_to_worker(addr, req_id, body)
       receive do
         {:ack, worker_addr} ->
           Ez.Workers.worker_engaged(worker_addr)
