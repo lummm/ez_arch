@@ -1,4 +1,4 @@
-defmodule Ez.ZmqReqSup do
+defmodule Ez.ZmqInterfaceSup do
   use Supervisor
 
   def start_link do
@@ -7,7 +7,7 @@ defmodule Ez.ZmqReqSup do
 
   def init(:ok) do
     children = [
-      worker(Ez.ZmqReq, []),
+      worker(Ez.ZmqInterface, []),
     ]
     Supervisor.init(children, strategy: :one_for_one)
   end

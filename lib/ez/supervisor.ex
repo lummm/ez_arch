@@ -13,7 +13,7 @@ defmodule Ez.Supervisor do
       worker(Ez.Requests, []),
       supervisor(Ez.WorkerListenSup, []),
       worker(Ez.Workers, []),
-      supervisor(Ez.ZmqReqSup, []),
+      supervisor(Ez.ZmqInterfaceSup, []),
     ]
     Supervisor.init(children, strategy: :one_for_one)
   end

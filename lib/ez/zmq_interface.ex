@@ -1,4 +1,4 @@
-defmodule Ez.ZmqReq do
+defmodule Ez.ZmqInterface do
   @moduledoc """
   This is the interface to requests over Zmq.
   Incoming requests are interpreted as frames, and then sent to the EzReq
