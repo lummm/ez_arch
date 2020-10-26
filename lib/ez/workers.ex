@@ -102,8 +102,13 @@ defmodule Ez.Workers do
     |> Enum.map(fn {sname, workers} ->
       {sname, MapSet.difference(workers, to_delete)}
     end)
-    |> Enum.filter(fn {_sname, workers} ->
-      MapSet.size(workers) < 1
+    |> Enum.filter(fn {sname, workers} ->
+      if 0 < MapSet.size(workers) do
+        true
+      else
+        Logger.info("no workers left for service #{sname}")
+        false
+      end
     end)
     |> Map.new()
     timeouts = Map.drop(state.timeouts, addresses)
@@ -124,7 +129,7 @@ defmodule Ez.Workers do
     workers = if Map.has_key?(state.services, sname) do
       state.services[sname]
     else
-      Logger.info("new worker for #{sname} - '#{Kernel.inspect(addr)}'")
+      Logger.info("new service - #{sname}")
       MapSet.new()
     end
     state
