@@ -11,10 +11,26 @@ defmodule Ez.EzReq do
     end)
   end
 
+  def ack(req_id) do
+    case Ez.Requests.get(req_id) do
+      %{pid: pid} -> send(pid, :ack)
+      _ -> Logger.error("Failed to process ack for req id #{req_id}")
+    end
+  end
+
+  def response_received(req_id, client_addr, reply_frames) do
+    case Ez.Requests.get(req_id) do
+      %{pid: pid} ->
+        send(pid, {:response, client_addr, reply_frames})
+      _ -> Logger.error("Failed to find process response for req id #{req_id}")
+    end
+  end
+
   defp do_request(
     req_id, return_addr, sname, body,
     retry_timeout
   ) do
+    Ez.Requests.put(req_id, self())
     state=%Ez.Workers{} = Ez.Workers.get_state()
     if not Map.has_key?(state.services, sname) do
       Logger.warn("no such service #{sname}")
@@ -23,19 +39,24 @@ defmodule Ez.EzReq do
         do_request(req_id, return_addr, sname, body,
           retry_timeout * 2)
       else
-          Ez.ZmqReq.reply(return_addr, req_id,
-            ["ERR", "\"no such service\""])
+        Ez.Requests.clear(self())
+        Ez.ZmqReq.reply(return_addr, req_id,
+          ["ERR", "\"no such service\""])
       end
     else
       {addr, jobs} = select_worker(state, sname)
       if Ez.Env.backpressure_threshold() < jobs do
         Process.sleep(jobs * Ez.Env.backpressure_ratio())
       end
-      Ez.Requests.put_req(req_id, self())
       Ez.WorkerListen.send_to_worker(
         addr, req_id, return_addr, body)
       receive do
-        :ack -> Ez.Workers.worker_engaged(addr)
+        :ack ->
+          Ez.Workers.worker_engaged(addr)
+          receive do
+            {:response, client_addr, reply_frames} ->
+              Ez.ZmqReq.reply(client_addr, req_id, reply_frames)
+          end
       after
         retry_timeout ->
           Logger.info("req timeout for #{sname}")
@@ -43,8 +64,9 @@ defmodule Ez.EzReq do
             do_request(req_id, return_addr, sname, body,
               retry_timeout * 2)
           else
-              Ez.ZmqReq.reply(return_addr, req_id,
-                ["ERR", "\"timeout\""])
+            Ez.Requests.clear(self())
+            Ez.ZmqReq.reply(return_addr, req_id,
+              ["ERR", "\"timeout\""])
           end
       end
 

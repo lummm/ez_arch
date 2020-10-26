@@ -55,11 +55,12 @@ defmodule Ez.Workers do
     state = case msg do
               [addr, "", @worker, @heartbeat, sname] ->
                 handle_heartbeat(addr, sname, state)
-              [addr, "", @worker, @reply | rest] ->
-                handle_reply(addr, rest)
+              [addr, "", @worker, @reply, client_addr, "", req_id | body] ->
+                worker_unengaged(addr)
+                Ez.EzReq.response_received(req_id, client_addr, body)
                 state
               [_addr, "", @worker, @ack, req_id] ->
-                handle_ack(req_id)
+                Ez.EzReq.ack(req_id)
                 state
               _ ->
                 Logger.warn("didn't recognize #{Kernel.inspect(msg)}")
@@ -125,29 +126,18 @@ defmodule Ez.Workers do
     }
   end
 
-  defp handle_reply(addr, reply_frames) do
-    spawn(fn ->
-      worker_unengaged(addr)
-      # the zmq layer should be a layer above EZ.
-      # So ZMQ requests are just translated into EZ requests,
-      # and the ZMQ responses are translated into normal EZ responses
-      # before they are sent to the surrounding ZMQ wrapper.
+  # defp handle_reply(addr, reply_frames) do
+  #   spawn(fn ->
+  #     worker_unengaged(addr)
+  #     # the zmq layer should be a layer above EZ.
+  #     # So ZMQ requests are just translated into EZ requests,
+  #     # and the ZMQ responses are translated into normal EZ responses
+  #     # before they are sent to the surrounding ZMQ wrapper.
 
-      # the request process could wait for us to send the frames to it,
-      Ez.ZmqReq.reply(reply_frames)
-    end)
-  end
-
-  defp handle_ack(req_id) do
-    spawn(fn ->
-      info = Ez.Requests.pop_req(req_id)
-      if info do
-        send(info.pid, :ack)
-      else
-        Logger.error("no info found for req id #{req_id}")
-      end
-    end)
-  end
+  #     # the request process could wait for us to send the frames to it,
+  #     Ez.ZmqReq.reply(reply_frames)
+  #   end)
+  # end
 
   defp check_worker_loop do
     Process.sleep(Ez.Env.worker_lifetime())
