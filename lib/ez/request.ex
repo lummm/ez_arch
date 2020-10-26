@@ -12,14 +12,14 @@ defmodule Ez.Request do
   end
 
   def ack(req_id) do
-    case Ez.Requests.get(req_id) do
+    case Ez.ReqRegistry.get(req_id) do
       %{pid: pid} -> send(pid, :ack)
       _ -> Logger.error("Failed to process ack for req id #{req_id}")
     end
   end
 
   def response_received(req_id, client_addr, reply_frames) do
-    case Ez.Requests.get(req_id) do
+    case Ez.ReqRegistry.get(req_id) do
       %{pid: pid} ->
         send(pid, {:response, client_addr, reply_frames})
       _ -> Logger.error("Failed to find process response for req id #{req_id}")
@@ -30,7 +30,7 @@ defmodule Ez.Request do
     req_id, return_addr, sname, body,
     retry_timeout
   ) do
-    Ez.Requests.put(req_id, self())
+    Ez.ReqRegistry.put(req_id, self())
     state=%Ez.Workers{} = Ez.Workers.get_state()
     if not Map.has_key?(state.services, sname) do
       Logger.warn("no such service #{sname}")
@@ -39,7 +39,7 @@ defmodule Ez.Request do
         do_request(req_id, return_addr, sname, body,
           retry_timeout * 2)
       else
-        Ez.Requests.clear(self())
+        Ez.ReqRegistry.clear(self())
         Ez.ZmqInterface.reply(return_addr, req_id,
           ["ERR", "\"no such service\""])
       end
@@ -64,7 +64,7 @@ defmodule Ez.Request do
             do_request(req_id, return_addr, sname, body,
               retry_timeout * 2)
           else
-            Ez.Requests.clear(self())
+            Ez.ReqRegistry.clear(self())
             Ez.ZmqInterface.reply(return_addr, req_id,
               ["ERR", "\"timeout\""])
           end

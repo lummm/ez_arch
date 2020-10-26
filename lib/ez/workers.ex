@@ -126,19 +126,6 @@ defmodule Ez.Workers do
     }
   end
 
-  # defp handle_reply(addr, reply_frames) do
-  #   spawn(fn ->
-  #     worker_unengaged(addr)
-  #     # the zmq layer should be a layer above EZ.
-  #     # So ZMQ requests are just translated into EZ requests,
-  #     # and the ZMQ responses are translated into normal EZ responses
-  #     # before they are sent to the surrounding ZMQ wrapper.
-
-  #     # the request process could wait for us to send the frames to it,
-  #     Ez.ZmqReq.reply(reply_frames)
-  #   end)
-  # end
-
   defp check_worker_loop do
     Process.sleep(Ez.Env.worker_lifetime())
     workers = get_timeouts()

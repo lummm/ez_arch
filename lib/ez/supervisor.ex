@@ -9,8 +9,7 @@ defmodule Ez.Supervisor do
   def init(:ok) do
     children = [
       worker(Ez.Env, []),
-      worker(Ez.Registry, []),
-      worker(Ez.Requests, []),
+      worker(Ez.ReqRegistry, []),
       supervisor(Ez.WorkerListenSup, []),
       worker(Ez.Workers, []),
       supervisor(Ez.ZmqInterfaceSup, []),

@@ -1,4 +1,4 @@
-defmodule Ez.Requests do
+defmodule Ez.ReqRegistry do
   @moduledoc """
   This holds state for requests.
   """
