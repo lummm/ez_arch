@@ -21,7 +21,10 @@ defmodule Ez.ZmqReq do
   end
 
   def reply(frames) do
-    # could break down frames into what they're supposed to look like
+    GenServer.cast(__MODULE__, {:reply, frames})
+  end
+  def reply(return_addr, req_id, body) do
+    frames = [return_addr, "", req_id] ++ body
     GenServer.cast(__MODULE__, {:reply, frames})
   end
 

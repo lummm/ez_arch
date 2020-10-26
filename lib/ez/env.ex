@@ -27,6 +27,13 @@ defmodule Ez.Env do
   def ez_port, do: GenServer.call(__MODULE__, {:get, :ez_port})
 
   @doc """
+  MAxixmum time in milliseconds we will let a request timeout reach.
+  After this point the request is considered failed.
+  """
+  def max_req_timeout, do: GenServer.call(__MODULE__,
+        {:get, :max_req_timeout})
+
+  @doc """
   Milliseconds after which we assume a worker died.
   """
   def worker_lifetime, do: GenServer.call(__MODULE__,
@@ -60,7 +67,9 @@ defmodule Ez.Env do
       backpressure_threshold: load_type(Integer,
         "BACKPRESSURE_THRESHOLD", "5"),
       ez_port: load_type(Integer, "EZ_PORT"),
-      worker_lifetime: load_type(Integer, "WORKER_LIFETIME_MS", "5000"),
+      min_req_timeout: load_type(Integer, "MIN_REQ_TIMEOUT", "500"),
+      max_req_timeout: load_type(Integer, "MAX_REQ_TIMEOUT", "5000"),
+      worker_lifetime: load_type(Integer, "WORKER_LIFETIME_MS", "2500"),
       worker_port: load_type(Integer, "WORKER_PORT"),
     }
     IO.puts("loaded env #{Kernel.inspect(state)}")

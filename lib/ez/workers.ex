@@ -16,6 +16,8 @@ defmodule Ez.Workers do
   @reply <<2>>
   @ack <<3>>
 
+  @min_timeout 500
+
   # Client API
   def start_link do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -75,7 +77,10 @@ defmodule Ez.Workers do
   end
   def handle_cast({:req, req_id, return_addr, sname, body}, state) do
     spawn(fn ->
-      do_request(state, req_id, return_addr, sname, body)
+      do_request(
+        state, req_id, return_addr, sname, body,
+        Ez.Env.max_req_timeout()
+      )
     end)
     {:noreply, state}
   end
@@ -163,17 +168,18 @@ defmodule Ez.Workers do
     |> Enum.min_by(fn {_addr, jobs} -> jobs end)
   end
 
-  defp do_request(state, req_id, return_addr, sname, body,
-  retry \\ true) do
+  defp do_request(
+    state, req_id, return_addr, sname, body,
+    retry_timeout
+  ) do
     if not Map.has_key?(state.services, sname) do
       Logger.warn("no such service #{sname}")
-      if retry do
-        Process.sleep(Integer.floor_div(Ez.Env.worker_lifetime(), 2))
-        do_request(state, req_id, return_addr, sname, body, false)
+      if retry_timeout do
+        Process.sleep(retry_timeout)
+        do_request(state, req_id, return_addr, sname, body, nil)
       else
-        Ez.ZmqReq.reply([
-          return_addr, "", req_id,  "ERR", "\"no such service\""
-        ])
+        Ez.ZmqReq.reply(return_addr, req_id,
+          ["ERR", "\"no such service\""])
       end
     else
       {addr, jobs} = select_worker(state, sname)
@@ -184,11 +190,12 @@ defmodule Ez.Workers do
       Ez.WorkerListen.send_to_worker(
         addr, req_id, return_addr, body)
       receive do
-        :ack ->
-          Logger.info("acked!")
-          :ok
-        # check for timeout, this means nothing picked
-        # it up in time, so we retry
+        :ack -> :ok
+      after
+        retry_timeout ->
+          Logger.info("req timeout for #{sname}")
+            Ez.ZmqReq.reply(return_addr, req_id,
+              ["ERR", "\"timeout\""])
       end
 
     end
