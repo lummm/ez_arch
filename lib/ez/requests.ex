@@ -9,30 +9,31 @@ defmodule Ez.Requests do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
   end
 
-  def match_pid_req(pid, req_id) do
-    GenServer.cast(__MODULE__, {:match_pid_req, pid, req_id})
+  def put_req(req_id, pid) do
+    GenServer.cast(__MODULE__, {:put_req, req_id, pid})
   end
 
-  def get_pid_for_req(req_id) do
-    GenServer.call(__MODULE__, {:get_pid, req_id})
+  def pop_req(req_id) do
+    GenServer.call(__MODULE__, {:pop_req, req_id})
   end
 
   # Server callbacks
   @impl true
   def init(_args) do
-    {:ok, %{
-        requests: %{},
-     }}
+    {:ok, %{}}
   end
 
   @impl true
-  def handle_cast({:match_pid_req, pid, req_id}, state) do
-    {:noreply, put_in(state, [:requests, req_id], pid)}
+  def handle_cast({:put_req, req_id, pid}, state) do
+    {:noreply, put_in(state, [req_id], %{
+            pid: pid}
+      )}
   end
 
   @impl true
-  def handle_call({:get_pid, req_id}, _from, state) do
-    {:reply, get_in(state, [:requests, req_id]), state}
+  def handle_call({:pop_req, req_id}, _from, state) do
+    info = Map.get(state, req_id)
+    {:reply, info, Map.delete(state, req_id)}
   end
 
 end

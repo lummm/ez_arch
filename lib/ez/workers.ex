@@ -16,8 +16,6 @@ defmodule Ez.Workers do
   @reply <<2>>
   @ack <<3>>
 
-  @min_timeout 500
-
   # Client API
   def start_link do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)
@@ -79,7 +77,7 @@ defmodule Ez.Workers do
     spawn(fn ->
       do_request(
         state, req_id, return_addr, sname, body,
-        Ez.Env.max_req_timeout()
+        Ez.Env.min_req_timeout()
       )
     end)
     {:noreply, state}
@@ -144,12 +142,11 @@ defmodule Ez.Workers do
 
   defp handle_ack(state, addr, req_id) do
     spawn(fn ->
-      Logger.info("handling ack for #{req_id}...")
-      pid = Ez.Requests.get_pid_for_req(req_id)
-      if pid do
-        send(pid, :ack)
+      info = Ez.Requests.pop_req(req_id)
+      if info do
+        send(info.pid, :ack)
       else
-        Logger.error("no process found for req id #{req_id}")
+        Logger.error("no info found for req id #{req_id}")
       end
     end)
     handle_common(state, addr)
@@ -174,9 +171,10 @@ defmodule Ez.Workers do
   ) do
     if not Map.has_key?(state.services, sname) do
       Logger.warn("no such service #{sname}")
-      if retry_timeout do
+      if retry_timeout && (retry_timeout < Ez.Env.max_req_timeout()) do
         Process.sleep(retry_timeout)
-        do_request(state, req_id, return_addr, sname, body, nil)
+        do_request(state, req_id, return_addr, sname, body,
+          retry_timeout * 2)
       else
         Ez.ZmqReq.reply(return_addr, req_id,
           ["ERR", "\"no such service\""])
@@ -186,16 +184,21 @@ defmodule Ez.Workers do
       if Ez.Env.backpressure_threshold() < jobs do
         Process.sleep(jobs * Ez.Env.backpressure_ratio())
       end
-      Ez.Requests.match_pid_req(self(), req_id)
+      Ez.Requests.put_req(req_id, self())
       Ez.WorkerListen.send_to_worker(
         addr, req_id, return_addr, body)
       receive do
-        :ack -> :ok
+        :ack -> worker_engaged(addr)
       after
         retry_timeout ->
           Logger.info("req timeout for #{sname}")
-            Ez.ZmqReq.reply(return_addr, req_id,
-              ["ERR", "\"timeout\""])
+          if retry_timeout < Ez.Env.max_req_timeout() do
+            do_request(state, req_id, return_addr, sname, body,
+              retry_timeout * 2)
+          else
+              Ez.ZmqReq.reply(return_addr, req_id,
+                ["ERR", "\"timeout\""])
+          end
       end
 
     end
