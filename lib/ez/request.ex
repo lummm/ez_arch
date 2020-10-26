@@ -7,7 +7,8 @@ defmodule Ez.Request do
   def req(from, req_id, sname, body) do
     spawn(fn ->
       res = do_request(req_id, sname, body, Ez.Env.min_req_timeout())
-      send(from, {:res, res})
+      # res is of the form {:ok, <response>} or {:err, <reason>}
+      send(from, res)
     end)
   end
 
@@ -21,7 +22,10 @@ defmodule Ez.Request do
   def response_received(req_id, reply_frames) do
     case Ez.ReqRegistry.get(req_id) do
       %{pid: pid} ->
-        send(pid, {:response, reply_frames})
+        case reply_frames do
+          ["OK" | rest] -> send(pid, {:ok, rest})
+          ["ERR" | rest] -> send(pid, {:service_err, rest})
+        end
       _ -> Logger.error("Failed to find process response for req id #{req_id}")
     end
   end
@@ -30,6 +34,8 @@ defmodule Ez.Request do
     req_id, sname, body,
     retry_timeout
   ) do
+  # Response is of the form
+  # {:ok, result}, {:ez_err, reason}, {:service_err, result}
     Ez.ReqRegistry.put(req_id, self())
     state=%Ez.Workers{} = Ez.Workers.get_state()
     if not Map.has_key?(state.services, sname) do
@@ -39,7 +45,7 @@ defmodule Ez.Request do
         do_request(req_id, sname, body, retry_timeout * 2)
       else
         Ez.ReqRegistry.clear(self())
-        ["ERR", "\"no such service\""]
+        {:ez_err, :no_service}
       end
     else
       {addr, jobs} = select_worker(state, sname)
@@ -51,8 +57,8 @@ defmodule Ez.Request do
         {:ack, worker_addr} ->
           Ez.Workers.worker_engaged(worker_addr)
           receive do
-            {:response, reply_frames} ->
-              reply_frames
+            {:ok, rest} -> {:ok, rest}
+            {:service_err, rest} -> {:service_err, rest}
           end
       after
         retry_timeout ->
@@ -61,7 +67,7 @@ defmodule Ez.Request do
             do_request(req_id, sname, body, retry_timeout * 2)
           else
             Ez.ReqRegistry.clear(self())
-            ["ERR", "\"timeout\""]
+            {:ez_err, :timeout}
           end
       end
 

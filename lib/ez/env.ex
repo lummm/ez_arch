@@ -50,6 +50,12 @@ defmodule Ez.Env do
   """
   def worker_port, do: GenServer.call(__MODULE__, {:get, :worker_port})
 
+  @doc """
+  Port workers listen for work / heartbeat on over ZMQ.
+  """
+  def zmq_req_timeout, do: GenServer.call(__MODULE__,
+        {:get, :zmq_req_timeout})
+
   # Server callbacks
   @impl true
   def init(_args) do
@@ -77,6 +83,7 @@ defmodule Ez.Env do
       max_req_timeout: load_type(Integer, "MAX_REQ_TIMEOUT", "5000"),
       worker_lifetime: load_type(Integer, "WORKER_LIFETIME_MS", "2500"),
       worker_port: load_type(Integer, "WORKER_PORT"),
+      zmq_req_timeout: load_type(Integer, "ZMQ_REQ_TIMEOUT", "10000"),
     }
     IO.puts("loaded env #{Kernel.inspect(state)}")
     state
