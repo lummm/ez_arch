@@ -2,9 +2,10 @@ defmodule Ez.Workers do
   @moduledoc """
   State looks like this:
   {
+    addresses: %{addr -> service_name}
     jobs: %{addr -> job count}
-    services: %{service_name -> MapSet of addresses }
-    timeouts: %{addr -> timeout unix milliseconds }
+    services: %{service_name -> MapSet of addresses}
+    timeouts: %{addr -> timeout unix milliseconds}
   }
   """
 
@@ -52,6 +53,7 @@ defmodule Ez.Workers do
   def init(_args) do
     spawn_link(fn -> check_worker_loop() end)
     {:ok, %{
+        addresses: %{},
         jobs: %{},
         services: %{},
         timeouts: %{},
@@ -93,30 +95,25 @@ defmodule Ez.Workers do
     {:noreply, state}
   end
   def handle_cast({:delete, addresses}, state) do
-    Enum.each(addresses,
-      &(Logger.info("deleting worker - #{Kernel.inspect(&1)}")))
-    # I'd like it if I could look up the service name for an address
-    to_delete = MapSet.new(addresses)
-    jobs = Map.drop(state.jobs, addresses)
-    services = state.services
-    |> Enum.map(fn {sname, workers} ->
-      {sname, MapSet.difference(workers, to_delete)}
-    end)
-    |> Enum.filter(fn {sname, workers} ->
-      if 0 < MapSet.size(workers) do
-        true
+    Enum.each(addresses, &(Logger.info(
+              "deleting #{state.addresses[&1]} worker - #{Kernel.inspect(&1)}"
+            )))
+    new_services = addresses
+    |> Enum.map(fn addr -> {addr, state.addresses[addr]} end)
+    |> Enum.reduce(state.services, fn {addr, sname}, services ->
+      new_workers = MapSet.delete(services[sname], addr)
+      if 0 < MapSet.size(new_workers) do
+        put_in(services, [sname], new_workers)
       else
-        Logger.info("no workers left for service #{sname}")
-        false
+        Map.delete(services, sname)
       end
     end)
-    |> Map.new()
-    timeouts = Map.drop(state.timeouts, addresses)
-    {:noreply, %{
-        jobs: jobs,
-        services: services,
-        timeouts: timeouts,
-     }}
+    {:noreply, %{state |
+                 addresses: Map.drop(state.addresses, addresses),
+                 jobs: Map.drop(state.jobs, addresses),
+                 services: new_services,
+                 timeouts: Map.drop(state.timeouts, addresses),
+                }}
   end
 
   @impl true
@@ -126,14 +123,17 @@ defmodule Ez.Workers do
 
   # private
   defp handle_heartbeat(state, addr, sname) do
+    if not Map.has_key?(state.addresses, addr) do
+      Logger.info("new worker for #{sname} - #{Kernel.inspect(addr)}")
+    end
     workers = if Map.has_key?(state.services, sname) do
       state.services[sname]
     else
-      Logger.info("new service - #{sname}")
       MapSet.new()
     end
     state
     |> put_in([:services, sname], MapSet.put(workers, addr))
+    |> put_in([:addresses, addr], sname)
     |> handle_common(addr)
   end
 
