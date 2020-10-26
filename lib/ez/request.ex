@@ -7,7 +7,6 @@ defmodule Ez.Request do
   def req(from, req_id, sname, body) do
     spawn(fn ->
       res = do_request(req_id, sname, body, Ez.Env.min_req_timeout())
-      # res is of the form {:ok, <response>} or {:err, <reason>}
       send(from, res)
     end)
   end
