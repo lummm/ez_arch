@@ -20,9 +20,6 @@ defmodule Ez.ZmqInterface do
     GenServer.cast(__MODULE__, {:zmq_req, msg})
   end
 
-  def reply(frames) do
-    GenServer.cast(__MODULE__, {:reply, frames})
-  end
   def reply(return_addr, req_id, body) do
     frames = [return_addr, "", req_id] ++ body
     GenServer.cast(__MODULE__, {:reply, frames})
@@ -45,7 +42,9 @@ defmodule Ez.ZmqInterface do
   def handle_cast({:zmq_req, msg}, state) do
     case msg do
       [return_addr, "", @client, req_id, service_name | rest] ->
-        Ez.Request.req(req_id, return_addr, service_name, rest)
+        spawn(fn ->
+          do_request(req_id, return_addr, service_name, rest)
+        end)
         {:noreply, state}
       _ ->
         Logger.warn("bad zmq req #{Kernel.inspect(msg)}")
@@ -61,6 +60,15 @@ defmodule Ez.ZmqInterface do
     {:ok, msg} = :chumak.recv_multipart(socket)
     zmq_req(msg)
     listen(socket)
+  end
+
+  defp do_request(req_id, return_addr, service_name, rest) do
+    Ez.Request.req(self(), req_id, return_addr, service_name, rest)
+    receive do
+      {:res, response} -> reply(return_addr, req_id, response)
+      # timeout...
+    end
+
   end
 
 end

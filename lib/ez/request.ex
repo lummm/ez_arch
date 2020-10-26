@@ -4,10 +4,11 @@ defmodule Ez.Request do
   """
   require Logger
 
-  def req(req_id, return_addr, sname, body) do
+  def req(from, req_id, return_addr, sname, body) do
     spawn(fn ->
-      do_request(req_id, return_addr, sname, body,
-        Ez.Env.min_req_timeout())
+      res = do_request(req_id, return_addr, sname, body,
+      Ez.Env.min_req_timeout())
+      send(from, {:res, res})
     end)
   end
 
@@ -40,8 +41,7 @@ defmodule Ez.Request do
           retry_timeout * 2)
       else
         Ez.ReqRegistry.clear(self())
-        Ez.ZmqInterface.reply(return_addr, req_id,
-          ["ERR", "\"no such service\""])
+        ["ERR", "\"no such service\""]
       end
     else
       {addr, jobs} = select_worker(state, sname)
@@ -54,8 +54,8 @@ defmodule Ez.Request do
         :ack ->
           Ez.Workers.worker_engaged(addr)
           receive do
-            {:response, client_addr, reply_frames} ->
-              Ez.ZmqInterface.reply(client_addr, req_id, reply_frames)
+            {:response, _client_addr, reply_frames} ->
+              reply_frames
           end
       after
         retry_timeout ->
@@ -65,8 +65,7 @@ defmodule Ez.Request do
               retry_timeout * 2)
           else
             Ez.ReqRegistry.clear(self())
-            Ez.ZmqInterface.reply(return_addr, req_id,
-              ["ERR", "\"timeout\""])
+            ["ERR", "\"timeout\""]
           end
       end
 
