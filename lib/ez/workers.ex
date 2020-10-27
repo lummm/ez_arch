@@ -42,6 +42,18 @@ defmodule Ez.Workers do
     GenServer.call(__MODULE__, {:get, :state})
   end
 
+  def select_worker(%Ez.Workers{
+        services: services,
+        jobs: jobs},
+    sname
+  ) do
+    services[sname]
+    |> MapSet.to_list()
+    |> Stream.map(fn addr -> {addr, Map.get(jobs, addr, 0)} end)
+    |> Enum.min_by(fn {_addr, jobs} -> jobs end)
+  end
+
+
 
   # Server callbacks
   @impl true

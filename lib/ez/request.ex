@@ -4,9 +4,11 @@ defmodule Ez.Request do
   """
   require Logger
 
-  def req(from, req_id, sname, body) do
+  defstruct req_id: nil, sname: nil, body: nil
+
+  def req(from, req=%Ez.Request{}) do
     spawn(fn ->
-      res = do_request(req_id, sname, body, Ez.Env.min_req_timeout())
+      res = do_request(req)
       send(from, res)
     end)
   end
@@ -31,54 +33,10 @@ defmodule Ez.Request do
     end
   end
 
-  defp do_request(
-    req_id, sname, body,
-    retry_timeout
-  ) do
-  # Response is of the form
-  # {:ok, result}, {:ez_err, reason}, {:service_err, result}
+  defp do_request(req=%Ez.Request{req_id: req_id}) do
     Ez.ReqRegistry.put(req_id, self())
-    state=%Ez.Workers{} = Ez.Workers.get_state()
-    if not Map.has_key?(state.services, sname) do
-      Logger.warn("no such service #{sname}")
-      if retry_timeout && (retry_timeout < Ez.Env.max_req_timeout()) do
-        Process.sleep(retry_timeout)
-        do_request(req_id, sname, body, retry_timeout * 2)
-      else
-        Ez.ReqRegistry.clear(self())
-        {:ez_err, :no_service}
-      end
-    else
-      {addr, jobs} = select_worker(state, sname)
-      if Ez.Env.backpressure_threshold() < jobs do
-        Process.sleep(jobs * Ez.Env.backpressure_ratio())
-      end
-      Ez.WorkerInterface.send_to_worker(addr, req_id, body)
-      receive do
-        {:ack, worker_addr} ->
-          Ez.Workers.worker_engaged(worker_addr)
-          receive do
-            {:ok, rest} -> {:ok, rest}
-            {:service_err, rest} -> {:service_err, rest}
-          end
-      after
-        retry_timeout ->
-          Logger.info("req timeout for #{sname}")
-          if retry_timeout < Ez.Env.max_req_timeout() do
-            do_request(req_id, sname, body, retry_timeout * 2)
-          else
-            Ez.ReqRegistry.clear(self())
-            {:ez_err, :timeout}
-          end
-      end
-
-    end
-  end
-
-  defp select_worker(state, sname) do
-    state.services[sname]
-    |> MapSet.to_list()
-    |> Stream.map(fn addr -> {addr, Map.get(state.jobs, addr, 0)} end)
-    |> Enum.min_by(fn {_addr, jobs} -> jobs end)
+    res = Ez.RequestStateMachine.run(req)
+    Ez.ReqRegistry.clear(self())
+    res
   end
 end

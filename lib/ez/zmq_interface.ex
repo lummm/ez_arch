@@ -63,7 +63,8 @@ defmodule Ez.ZmqInterface do
   end
 
   defp do_request(req_id, return_addr, service_name, rest) do
-    Ez.Request.req(self(), req_id, service_name, rest)
+    Ez.Request.req(self(),
+      %Ez.Request{req_id: req_id, sname: service_name, body: rest})
     response = receive do
       {:ok, frames} -> ["OK" | frames]
       {:service_err, frames} -> ["SERVICE_ERR" | frames]
