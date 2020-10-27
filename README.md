@@ -9,7 +9,7 @@ and to enable straightforward horizontal scaling of each service.
 This repo provides the 'plumbing' of the framework, and a broker for requests.
 <!-- For a demo, see [docker-compose.yaml](https://github.com/tengelisconsulting/ez_arch/blob/master/docker-compose.yaml). -->
 
-The python worker API lives here: [ezpy](https://github.com/tengelisconsulting/ezpy).
+The python worker API lives here: [pyez](https://github.com/tengelisconsulting/pyez).
 I'll include other language clients if I need one, but you can write your own fairly easily.
 See [worker protocol](https://github.com/tengelisconsulting/ez_arch/blob/master/worker_protocol.md)
 
