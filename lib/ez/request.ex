@@ -24,6 +24,8 @@ defmodule Ez.Request do
         case reply_frames do
           ["OK" | rest] -> send(pid, {:ok, rest})
           ["ERR" | rest] -> send(pid, {:service_err, rest})
+          _ ->
+            Logger.error("bad reply frames: #{Kernel.inspect(reply_frames)}")
         end
       _ -> Logger.error("Failed to find process response for req id #{req_id}")
     end
