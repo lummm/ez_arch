@@ -2,4 +2,4 @@
 
 # required
 export WORKER_PORT="9004"       # port at which workers heartbeat / receive requests / send replies
-export EZ_PORT="9000"           # port at which ZMQ requests are made
+export ZMQ_REQ_PORT="9000"           # port at which ZMQ requests are made

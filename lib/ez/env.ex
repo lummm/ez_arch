@@ -21,10 +21,6 @@ defmodule Ez.Env do
   def backpressure_threshold, do: GenServer.call(__MODULE__,
         {:get, :backpressure_threshold})
 
-  @doc """
-  Port at which EZ requests are made over ZMQ.
-  """
-  def ez_port, do: GenServer.call(__MODULE__, {:get, :ez_port})
 
   @doc """
   MAxixmum time in milliseconds we will let a request timeout reach.
@@ -49,6 +45,11 @@ defmodule Ez.Env do
   Port workers listen for work / heartbeat on over ZMQ.
   """
   def worker_port, do: GenServer.call(__MODULE__, {:get, :worker_port})
+
+  @doc """
+  Port at which EZ requests are made over ZMQ.
+  """
+  def zmq_req_port, do: GenServer.call(__MODULE__, {:get, :zmq_req_port})
 
   @doc """
   Port workers listen for work / heartbeat on over ZMQ.
@@ -78,11 +79,11 @@ defmodule Ez.Env do
       backpressure_ratio: load_type(Float, "BACKPRESSURE_RATIO", "10.0"),
       backpressure_threshold: load_type(Integer,
         "BACKPRESSURE_THRESHOLD", "5"),
-      ez_port: load_type(Integer, "EZ_PORT"),
       min_req_timeout: load_type(Integer, "MIN_REQ_TIMEOUT", "1000"),
       max_req_timeout: load_type(Integer, "MAX_REQ_TIMEOUT", "5000"),
       worker_lifetime: load_type(Integer, "WORKER_LIFETIME_MS", "2500"),
       worker_port: load_type(Integer, "WORKER_PORT"),
+      zmq_req_port: load_type(Integer, "ZMQ_REQ_PORT"),
       zmq_req_timeout: load_type(Integer, "ZMQ_REQ_TIMEOUT", "10000"),
     }
     IO.puts("loaded env #{Kernel.inspect(state)}")

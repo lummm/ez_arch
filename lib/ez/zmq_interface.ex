@@ -28,7 +28,7 @@ defmodule Ez.ZmqInterface do
   # Server callbacks
   @impl true
   def init(_args) do
-    port = Ez.Env.ez_port()
+    port = Ez.Env.zmq_req_port()
     {:ok, socket} = :chumak.socket(:router)
     {:ok, _bind_pid} = :chumak.bind(socket, :tcp, '0.0.0.0', port)
     spawn_link(fn ->
