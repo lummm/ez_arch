@@ -27,9 +27,3 @@ The contents of each message are specified in [spec.org](https://raw.githubuserc
 ### Backpressure
 Until there are BACKPRESSURE_THRESHOLD jobs queued on a worker, requests don't block at all.
 At this point, the request process will block for (queued jobs count) * BACKPRESSURE_RATIO milliseconds.
-
-
-## Next steps
-- The only queuing of jobs takes place on a given worker's DEALER socket.
-If a worker dies with frames queued on its socket, these frames are lost.
-To resolve this, I intend to expect a worker ACK when a worker takes on a job, so that the job is queued in an Elixir process.
